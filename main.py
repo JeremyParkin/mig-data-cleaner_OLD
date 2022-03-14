@@ -3,7 +3,7 @@ import pandas as pd
 import numpy as np
 import io
 from io import BytesIO
-import xlsxwriter
+# import xlsxwriter
 from deep_translator import GoogleTranslator
 from titlecase import titlecase
 import warnings
@@ -163,7 +163,7 @@ if 'translated_snippet' not in st.session_state:
     st.session_state.translated_snippet = False
 
 
-# Sidebar page selector
+# Sidebar and page selector
 st.sidebar.image('https://agilitypr.news/images/Agility-centered.svg', width=200)
 st.sidebar.title('MIG: Data Cleaning App')
 page = st.sidebar.radio("Data Cleaning Steps:", [
@@ -198,7 +198,7 @@ if page == "1: Upload your CSV":
             data['Audience Reach'] = data['Audience Reach'].astype('Int64')
             st.session_state.export_name = f"{client} - {period} - clean_data.xlsx"
             st.session_state.page_subtitle = f"{client} - {period}"
-
+            st.header('Exploratory Data Analysis')
             col1, col2 = st.columns(2)
             with col1:
                 st.subheader("Basic Metrics")
@@ -220,8 +220,16 @@ if page == "1: Upload your CSV":
                 original_top_outlets = (top_x_by_mentions(data, "Outlet"))
                 st.write(original_top_outlets)
 
+            # source = data['Sentiment'].value_counts().reset_index()
+            # sentiment = alt.Chart(source).mark_arc().encode(
+            #     theta=alt.Theta(field="Sentiment", type="quantitative"),
+            #     color=alt.Color(field="index", type="nominal")
+            # )
+            #
+            # st.altair_chart(sentiment, use_container_width=True)
+
             st.markdown('##')
-            st.subheader('Trend')
+            st.subheader('Mention Trend')
             # data['Published Date'] = pd.to_datetime(data['Published Date'])
 
             trend = alt.Chart(data).mark_line().encode(
@@ -229,6 +237,16 @@ if page == "1: Upload your CSV":
                 y='count(Mentions):Q'
             )
             st.altair_chart(trend, use_container_width=True)
+
+            st.markdown('##')
+            st.subheader('Impressions Trend')
+            # data['Published Date'] = pd.to_datetime(data['Published Date'])
+
+            trend2 = alt.Chart(data).mark_line().encode(
+                x='Published Date:T',
+                y='sum(Audience Reach):Q'
+            )
+            st.altair_chart(trend2, use_container_width=True)
 
             st.subheader("Raw Data")
             st.dataframe(data)
