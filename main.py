@@ -3,7 +3,7 @@ import pandas as pd
 import numpy as np
 import io
 from io import BytesIO
-# import xlsxwriter
+import xlsxwriter
 from deep_translator import GoogleTranslator
 from titlecase import titlecase
 import warnings
