@@ -180,10 +180,10 @@ if page == "1: Upload your CSV":
     st.header('Getting Started')
 
     with st.form("my_form"):
-        client = st.text_input('Client organization name*', placeholder='eg. Air Canada', key='client')
-        period = st.text_input('Reporting period*', placeholder='eg. March 2022', key='period')
+        client = st.text_input('Client organization name*', placeholder='eg. Air Canada', key='client', help='Required to build export file name.')
+        period = st.text_input('Reporting period*', placeholder='eg. March 2022', key='period', help='Required to build export file name.')
         uploaded_file = st.file_uploader(label='Upload your CSV*', type='csv',
-                                         accept_multiple_files=False)
+                                         accept_multiple_files=False, help='Only use CSV files exported from the Agility Platform.')
         submitted = st.form_submit_button("Submit")
         if submitted and (client == "" or period == "" or uploaded_file == None):
             st.error('Missing required form inputs above.')
@@ -441,12 +441,12 @@ elif page == "3: Impressions - Outliers":
         st.error('Please run the Standard Cleaning before trying this step.')
     else:
         st.subheader('Check highest impressions numbers:')
-        st.dataframe(traditional[['Outlet', 'Type', 'Impressions', 'Headline', 'URL', 'Country']].nlargest(25, 'Impressions'))
+        st.dataframe(traditional[['Outlet', 'Type', 'Impressions', 'Headline', 'URL', 'Country']].nlargest(100, 'Impressions'))
 
         with st.form("Update Outliers"):
             st.subheader("Update Impressions Outliers")
-            index_number = int(st.number_input('Row index number: ', step=1, format='%i'))
-            new_impressions_value = int(st.number_input('New impressions value for row', step=1, format='%i'))
+            index_number = int(st.number_input('Row index number: ', step=1, format='%i', help='Select the row number from the table above.'))
+            new_impressions_value = int(st.number_input('New impressions value for row', step=1, format='%i', help='Write in the new impression value for the selected row.'))
             submitted = st.form_submit_button("Go!")
             if submitted:
                 traditional.loc[index_number, "Impressions"] = new_impressions_value
@@ -576,8 +576,8 @@ elif page == "5: Authors":
             with st.form('auth updater', clear_on_submit=True):
                 st.write("**Possible Authors**")
                 st.write(headline_authors(traditional, headline_text))
-                box_author = st.selectbox('Possible Authors', possibles)
-                string_author = st.text_input("What name should be applied to the author field?", help='This will over-ride a selection from the dropdown above.')
+                box_author = st.selectbox('Possible Authors', possibles, help='Pick from one of the authors already associated with this headline.')
+                string_author = st.text_input("What name should be applied to the author field?", help='Override above selection by writing in a custom name.')
 
                 if len(string_author) > 0:
                     new_author = string_author
