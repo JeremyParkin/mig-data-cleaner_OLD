@@ -15,7 +15,7 @@ warnings.filterwarnings('ignore')
 st.set_page_config(layout="wide", page_title="MIG Data Cleaning App")
 hide_menu_style = """
         <style>
-        #MainMenu {visibility: hidden; }
+        /* #MainMenu {visibility: hidden; } */
         footer {visibility: hidden;}
         </style>
         """
