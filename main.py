@@ -12,7 +12,14 @@ import warnings
 import altair as alt
 warnings.filterwarnings('ignore')
 
-st.set_page_config(layout="wide")
+st.set_page_config(layout="wide", page_title="MIG Data Cleaning App")
+hide_menu_style = """
+        <style>
+        #MainMenu {visibility: hidden; }
+        footer {visibility: hidden;}
+        </style>
+        """
+st.markdown(hide_menu_style, unsafe_allow_html=True)
 
 def yahoo_cleanup(url_string):
   data.loc[data['URL'].str.contains(url_string, na=False), "Outlet"] = "Yahoo! News"
@@ -114,7 +121,7 @@ def translate_col(df, name_of_column):
             translated_x.append(GoogleTranslator(source='auto', target='en').translate(text))
             dictionary = dict(zip(unique_non_eng, translated_x))
             df[name_of_column].replace(dictionary, inplace = True)
-    st.success('Done!')
+    # st.success(f'Done translating {name_of_column}!')
 
 
 def translation_stats_combo():
@@ -257,7 +264,10 @@ if page == "1: Upload your CSV":
             data.info(buf=buffer)
             s = buffer.getvalue()
             st.text(s)
-
+    # if st.button('Next page'):
+    #     st.write('Hello?')
+    #     st.session_state.page = "2: Standard Cleaning"
+        # st.session_state['page'] = '1: Upload your CSV'
 
 elif page == "2: Standard Cleaning":
     st.header('Standard Cleaning')
@@ -682,18 +692,20 @@ elif page == "6: Translation":
                     translate_col(traditional, 'Headline')
                     translate_col(social, 'Headline')
                     st.session_state.translated_headline = True
+                    st.success(f'Done translating headlines!')
                 if summary_to_english:
                     translate_col(traditional, 'Summary')
                     translate_col(social, 'Summary')
                     st.session_state.translated_summary = True
+                    st.success(f'Done translating summaries!')
                 if snippet_to_english:
                     translate_col(traditional, 'Snippet')
                     translate_col(social, 'Snippet')
                     st.session_state.translated_snippet = True
+                    st.success(f'Done translating snippets!')
                 st.session_state.df_traditional = traditional
                 st.session_state.df_social = social
                 st.experimental_rerun()
-
 
 
 elif page == "7: Download":
