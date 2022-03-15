@@ -2,13 +2,13 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import io
-from io import BytesIO
-import xlsxwriter
+# from io import BytesIO
+# import xlsxwriter
 from deep_translator import GoogleTranslator
 from titlecase import titlecase
 import warnings
-from datetime import datetime
-import plotly.graph_objects as go
+# from datetime import datetime
+# import plotly.graph_objects as go
 import altair as alt
 warnings.filterwarnings('ignore')
 
@@ -261,7 +261,6 @@ if page == "1: Upload your CSV":
 
 elif page == "2: Standard Cleaning":
     st.header('Standard Cleaning')
-    st.markdown(st.session_state.page_subtitle)
     if st.session_state.upload_step == False:
         st.error('Please upload a CSV before trying this step.')
     else:
@@ -277,7 +276,9 @@ elif page == "2: Standard Cleaning":
                     'Coverage Snippet': 'Snippet',
                     'Province/State': 'Prov/State',
                     'Audience Reach': 'Impressions'})
-                st.write('✓ Columns Renamed')
+                col1, col2, col3 = st.columns(3)
+                with col1:
+                    st.write('✓ Columns Renamed')
 
                 data.Type.replace({"ONLINE_NEWS": "ONLINE NEWS", "PRESS_RELEASE": "PRESS RELEASE"}, inplace=True)
                 data.loc[data['URL'].str.contains("www.facebook.com", na=False), 'Type'] = "FACEBOOK"
@@ -285,11 +286,13 @@ elif page == "2: Standard Cleaning":
                 data.loc[data['URL'].str.contains("www.instagram.com", na=False), 'Type'] = "INSTAGRAM"
                 data.loc[data['URL'].str.contains("reddit.com", na=False), 'Type'] = "REDDIT"
                 data.loc[data['URL'].str.contains("youtube.com", na=False), 'Type'] = "YOUTUBE"
-                st.write('✓ Media Types Cleaned')
+                with col2:
+                    st.write('✓ Media Types Cleaned')
 
                 if "Original URL" in data:
                     data.loc[data["Original URL"].notnull(), "URL"] = data["Original URL"]
-                    st.write('✓ Original URLs Merged')
+                    with col3:
+                        st.write('✓ Original URLs Merged')
 
                 data.drop(["Timezone",
                            "Word Count",
@@ -301,7 +304,8 @@ elif page == "2: Standard Cleaning":
                            "County",
                            "isAudienceFromPartnerUniqueVisitor"],
                           axis=1, inplace=True, errors='ignore')
-                st.write('✓ Useless Columns Dropped')
+                with col1:
+                    st.write('✓ Junk Columns Dropped')
 
                 # Move columns
                 temp = data.pop('Impressions')
@@ -309,6 +313,8 @@ elif page == "2: Standard Cleaning":
                 # data.Impressions = data.Impressions.astype('Int64')
                 temp = data.pop('Mentions')
                 data.insert(5, 'Mentions', temp)
+                with col2:
+                    st.write('✓ Columns Sorted')
 
                 # Strip extra white space
                 data['Headline'].str.strip()
@@ -320,16 +326,19 @@ elif page == "2: Standard Cleaning":
                 data['Headline'] = data['Headline'].str.replace('  ', ' ')
                 data['Outlet'] = data['Outlet'].str.replace('  ', ' ')
                 data['Author'] = data['Author'].str.replace('  ', ' ')
-                st.write('✓ Extra Spaces Removed')
+                with col3:
+                    st.write('✓ Extra Spaces Removed')
 
                 # Remove (Online)
                 data['Outlet'] = data['Outlet'].str.replace(' \(Online\)', '')
-                st.write('✓ "(Online)" Removed from Outlet Names')
+                with col1:
+                    st.write('✓ "(Online)" Removed')
 
                 # Tag exploder
                 if "Tags" in data:
                     data = data.join(data["Tags"].str.get_dummies(sep=","))
-                    st.write('✓ Tags Expanded to Unique Columns')
+                    with col2:
+                        st.write('✓ Tags Expanded')
 
                 # DROP SOCIALS To sep df
                 soc_array = ['FACEBOOK', 'TWITTER', 'INSTAGRAM', 'REDDIT', 'YOUTUBE']
@@ -346,23 +355,22 @@ elif page == "2: Standard Cleaning":
                 data.drop(index_names, inplace=True)
                 index_names = data[(data['Type'] == 'PODCAST')].index
                 data.drop(index_names, inplace=True)
-                st.write('✓ Social Split Out')
+                with col3:
+                    st.write('✓ Social Split Out')
 
                 # AP Cap
                 broadcast_array = ['RADIO', 'TV']
                 broadcast = data.loc[data['Type'].isin(broadcast_array)]
-
                 index_names = data[(data['Type'] == 'RADIO')].index
                 data.drop(index_names, inplace=True)
                 index_names = data[(data['Type'] == 'TV')].index
                 data.drop(index_names, inplace=True)
-
                 data[['Headline']] = data[['Headline']].fillna('')
                 data['Headline'] = data['Headline'].map(lambda Headline: titlecase(Headline))
-
                 frames = [data, broadcast]
                 data = pd.concat(frames)
-                st.write('✓ AP Style Capitalization')
+                with col1:
+                    st.write('✓ AP Style Capitalization')
 
                 # Yahoo standardizer
                 yahoo_cleanup('sports.yahoo.com')
@@ -370,7 +378,8 @@ elif page == "2: Standard Cleaning":
                 yahoo_cleanup('news.yahoo.com')
                 yahoo_cleanup('style.yahoo.com')
                 yahoo_cleanup('finance.yahoo.com')
-                st.write('✓ Yahoo Standardization')
+                with col2:
+                    st.write('✓ Yahoo Standardization')
 
                 # Drop dupes
                 broadcast_array = ['RADIO', 'TV']
@@ -405,7 +414,8 @@ elif page == "2: Standard Cleaning":
                 frames = [data, broadcast]
                 data = pd.concat(frames)
                 dupes = pd.concat([dupe_urls, dupe_cols])
-                st.write('✓ Duplicates Removed')
+                with col3:
+                    st.write('✓ Duplicates Removed')
 
                 if len(data) > 0:
                     st.subheader("Traditional")
@@ -434,22 +444,26 @@ elif page == "2: Standard Cleaning":
 elif page == "3: Impressions - Outliers":
     traditional = st.session_state.df_traditional
     st.header('Impressions - Outliers')
-    st.markdown(st.session_state.page_subtitle)
     if st.session_state.upload_step == False:
         st.error('Please upload a CSV before trying this step.')
     elif st.session_state.standard_step == False:
         st.error('Please run the Standard Cleaning before trying this step.')
     else:
         st.subheader('Check highest impressions numbers:')
-        st.dataframe(traditional[['Outlet', 'Type', 'Impressions', 'Headline', 'URL', 'Country']].nlargest(100, 'Impressions'))
+        outliers = traditional[['Outlet', 'Type', 'Impressions', 'Headline', 'URL', 'Country']].nlargest(100, 'Impressions')
+        outliers.index.name = 'Row'
+        st.dataframe(outliers)
+        outlier_index = outliers.index.values.tolist()
 
         with st.form("Update Outliers"):
             st.subheader("Update Impressions Outliers")
-            index_number = int(st.number_input('Row index number: ', step=1, format='%i', help='Select the row number from the table above.'))
+            index_numbers = st.multiselect('Row index number(s): ', outlier_index,
+                                               help='Select the row number from the table above.')
             new_impressions_value = int(st.number_input('New impressions value for row', step=1, format='%i', help='Write in the new impression value for the selected row.'))
             submitted = st.form_submit_button("Go!")
             if submitted:
-                traditional.loc[index_number, "Impressions"] = new_impressions_value
+                for index_number in index_numbers:
+                    traditional.loc[int(index_number), "Impressions"] = new_impressions_value
                 st.session_state.df_traditional = traditional
                 st.session_state.outliers = True
                 st.experimental_rerun()
@@ -461,7 +475,6 @@ elif page == "3: Impressions - Outliers":
 
 elif page == "4: Impressions - Fill Blanks":
     st.header('Impressions - Fill Blanks')
-    st.markdown(st.session_state.page_subtitle)
     if st.session_state.upload_step == False:
         st.error('Please upload a CSV before trying this step.')
     elif st.session_state.standard_step == False:
@@ -527,7 +540,6 @@ elif page == "4: Impressions - Fill Blanks":
 
 elif page == "5: Authors":
     st.header('Authors')
-    st.markdown(st.session_state.page_subtitle)
     if st.session_state.upload_step == False:
         st.error('Please upload a CSV before trying this step.')
     elif st.session_state.standard_step == False:
@@ -543,13 +555,13 @@ elif page == "5: Authors":
         headline_table = headline_table[headline_table['Missing'] > 0]
         headline_table = headline_table.sort_values("Missing", ascending=False)
         headline_table = headline_table.reset_index()
+        headline_table.rename(columns={'Author': 'Known',
+                           'Mentions': 'Total'},
+                  inplace=True, errors='raise')
 
         temp_headline_list = headline_table
         if counter < len(temp_headline_list):
             headline_text = temp_headline_list.iloc[counter]['Headline']
-
-            st.markdown("#### Fixable Headline")
-            st.text(headline_text)
 
             but1, but2 = st.columns(2)
             with but1:
@@ -570,12 +582,21 @@ elif page == "5: Authors":
             possibles = headline_authors(traditional, headline_text)['index'].tolist()
             possibles.append('- other - ')
 
-            # st.write(f"Counter: {counter}")
-            # st.write(f"Length of table: {len(temp_headline_list)}")
+            # CSS to inject contained in a string
+            hide_table_row_index = """
+                                <style>
+                                tbody th {display:none}
+                                .blank {display:none}
+                                </style>
+                                """
+            # Inject CSS with Markdown
+            st.markdown(hide_table_row_index, unsafe_allow_html=True)
 
             with st.form('auth updater', clear_on_submit=True):
-                st.write("**Possible Authors**")
-                st.write(headline_authors(traditional, headline_text))
+                st.table(headline_table.iloc[[counter]])
+                # st.write("**Possible Authors**")
+                st.table(headline_authors(traditional, headline_text).rename(columns={'index': 'Possible Author(s)',
+                                                                                     'Author': 'Matches'}))
                 box_author = st.selectbox('Possible Authors', possibles, help='Pick from one of the authors already associated with this headline.')
                 string_author = st.text_input("What name should be applied to the author field?", help='Override above selection by writing in a custom name.')
 
@@ -603,11 +624,6 @@ elif page == "5: Authors":
             else:
                 st.write("✓ Nothing left to update here.")
 
-
-        st.subheader('Most fixable headline authors')
-
-        st.table(headline_table.head(10))
-
         col1, col2 = st.columns(2)
 
         with col1:
@@ -625,7 +641,6 @@ elif page == "5: Authors":
 
 elif page == "6: Translation":
     st.header('Translation')
-    st.markdown(st.session_state.page_subtitle)
     traditional = st.session_state.df_traditional
     social = st.session_state.df_social
     if st.session_state.upload_step == False:
@@ -683,8 +698,6 @@ elif page == "6: Translation":
 
 elif page == "7: Download":
     st.header('Download')
-    st.markdown(st.session_state.page_subtitle)
-
     if st.session_state.upload_step == False:
         st.error('Please upload a CSV before trying this step.')
     elif st.session_state.standard_step == False:
