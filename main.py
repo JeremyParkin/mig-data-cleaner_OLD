@@ -602,11 +602,13 @@ elif page == "5: Authors":
             # Inject CSS with Markdown
             st.markdown(hide_table_row_index, unsafe_allow_html=True)
 
+            st.table(headline_table.iloc[[counter]])
+            # st.write("**Possible Authors**")
+            st.table(headline_authors(traditional, headline_text).rename(columns={'index': 'Possible Author(s)',
+                                                                                  'Author': 'Matches'}))
+
             with st.form('auth updater', clear_on_submit=True):
-                st.table(headline_table.iloc[[counter]])
-                # st.write("**Possible Authors**")
-                st.table(headline_authors(traditional, headline_text).rename(columns={'index': 'Possible Author(s)',
-                                                                                     'Author': 'Matches'}))
+
                 box_author = st.selectbox('Possible Authors', possibles, help='Pick from one of the authors already associated with this headline.')
                 string_author = st.text_input("What name should be applied to the author field?", help='Override above selection by writing in a custom name.')
 
