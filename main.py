@@ -188,7 +188,7 @@ if page == "1: Upload your CSV":
 
     with st.form("my_form"):
         client = st.text_input('Client organization name*', placeholder='eg. Air Canada', key='client', help='Required to build export file name.')
-        period = st.text_input('Reporting period*', placeholder='eg. March 2022', key='period', help='Required to build export file name.')
+        period = st.text_input('Reporting period or focus*', placeholder='eg. March 2022', key='period', help='Required to build export file name.')
         uploaded_file = st.file_uploader(label='Upload your CSV*', type='csv',
                                          accept_multiple_files=False, help='Only use CSV files exported from the Agility Platform.')
         submitted = st.form_submit_button("Submit")
