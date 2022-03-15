@@ -13,13 +13,12 @@ import altair as alt
 warnings.filterwarnings('ignore')
 
 st.set_page_config(layout="wide", page_title="MIG Data Cleaning App")
-hide_menu_style = """
-        <style>
-        /* #MainMenu {visibility: hidden; } */
-        footer {visibility: hidden;}
-        </style>
-        """
-st.markdown(hide_menu_style, unsafe_allow_html=True)
+# hide_menu_style = """
+#         <style>
+#         footer {visibility: hidden;}
+#         </style>
+#         """
+# st.markdown(hide_menu_style, unsafe_allow_html=True)
 
 def yahoo_cleanup(url_string):
   data.loc[data['URL'].str.contains(url_string, na=False), "Outlet"] = "Yahoo! News"
