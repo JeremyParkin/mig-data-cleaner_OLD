@@ -580,6 +580,7 @@ elif page == "4: Impressions - Fill Blanks":
                     traditional['Impressions'] = traditional['Impressions'].astype(int)
                     st.session_state.df_traditional = traditional
                     st.experimental_rerun()
+                    # st.success("Missing impressions filled!")
 
 
 elif page == "5: Authors":
@@ -680,7 +681,10 @@ elif page == "5: Authors":
 
         with col1:
             st.subheader("Original Top Authors")
+            # st.write(original_top_authors)
+            original_top_authors = (top_x_by_mentions(traditional, "Author"))
             st.write(original_top_authors)
+            st.session_state.original_auths = original_top_authors
 
         with col2:
             st.subheader("New Top Authors")
