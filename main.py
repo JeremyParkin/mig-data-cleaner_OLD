@@ -108,6 +108,7 @@ def author_matcher(counter):
 
 def translate_col(df, name_of_column):
     """Replaces non-English string in column with English"""
+    # st.warning("Stay on this page until translation is complete")
     unique_non_eng = list(set(df[name_of_column][df['Language'] != 'English'].dropna()))
     if '' in unique_non_eng:
         unique_non_eng.remove('')
@@ -373,6 +374,7 @@ elif page == "2: Standard Cleaning":
 
                 # Tag exploder
                 if "Tags" in data:
+                    data['Tags'] = data['Tags'].astype(str)
                     data = data.join(data["Tags"].str.get_dummies(sep=","))
                     with col2:
                         st.write('✓ Tags Expanded')
@@ -466,6 +468,9 @@ elif page == "2: Standard Cleaning":
                 st.session_state.df_dupes = dupes
 
                 st.session_state.standard_step = True
+
+    # if len(data) > 0:
+
 
 
 
@@ -735,8 +740,23 @@ elif page == "6: Translation":
 
             submitted = st.form_submit_button("Go!")
             if submitted:
+                st.warning("Stay on this page until translation is complete")
+
                 if headline_to_english:
                     translate_col(traditional, 'Headline')
+
+                    # AP Cap
+                    broadcast_array = ['RADIO', 'TV']
+                    broadcast = traditional.loc[traditional['Type'].isin(broadcast_array)]
+                    index_names = traditional[(traditional['Type'] == 'RADIO')].index
+                    traditional.drop(index_names, inplace=True)
+                    index_names = traditional[(traditional['Type'] == 'TV')].index
+                    traditional.drop(index_names, inplace=True)
+                    traditional[['Headline']] = traditional[['Headline']].fillna('')
+                    traditional['Headline'] = traditional['Headline'].map(lambda Headline: titlecase(Headline))
+                    frames = [traditional, broadcast]
+                    traditional = pd.concat(frames)
+
                     translate_col(social, 'Headline')
                     st.session_state.translated_headline = True
                     st.success(f'Done translating headlines!')
@@ -753,6 +773,17 @@ elif page == "6: Translation":
                 st.session_state.df_traditional = traditional
                 st.session_state.df_social = social
                 st.experimental_rerun()
+
+        # if translation done:
+        #     if len(traditional) > 0:
+        #         with st.expander("Traditional - Translated"):
+        #             st.dataframe(traditional[traditional['Language'] != 'English'][
+        #                              ['Outlet', 'Headline', 'Snippet', 'Summary', 'Language', 'Country']])
+        #
+        #     if len(social) > 0:
+        #         with st.expander("Social - Translated"):
+        #             st.dataframe(social[social['Language'] != 'English'][
+        #                              ['Outlet', 'Snippet', 'Summary', 'Language', 'Country']])
 
 # ADD REVIEW STEP WITH EXPANDERS FOR TRAD / SOCIAL
 # basic metrics + charts
