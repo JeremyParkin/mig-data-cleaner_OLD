@@ -686,6 +686,7 @@ elif page == "5: Authors":
 
 
 elif page == "6: Translation":
+    # NEED BETTER SOCIAL TREATMENT HERE
     st.title('Translation')
     traditional = st.session_state.df_traditional
     social = st.session_state.df_social
@@ -695,11 +696,12 @@ elif page == "6: Translation":
         st.error('Please run the Standard Cleaning before trying this step.')
     elif st.session_state.translated_headline == True and st.session_state.translated_snippet == True and st.session_state.translated_summary == True:
         st.subheader("✓ Translation complete.")
-    elif len(traditional[traditional['Language'] != 'English']) == 0:
+    elif len(traditional[traditional['Language'] != 'English']) == 0 and len(social[social['Language'] != 'English']) == 0:
         st.subheader("No translation required")
     else:
         translation_stats_combo()
-        st.dataframe(traditional[traditional['Language'] != 'English'][['Outlet', 'Headline','Snippet','Summary','Language','Country']])
+        if len(traditional) > 0:
+            st.dataframe(traditional[traditional['Language'] != 'English'][['Outlet', 'Headline','Snippet','Summary','Language','Country']])
 
         with st.form('translation_form'):
             st.subheader("Pick columns for translations")
