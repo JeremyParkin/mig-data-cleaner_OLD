@@ -178,7 +178,8 @@ pagelist = [
     "4: Impressions - Fill Blanks",
     "5: Authors",
     "6: Translation",
-    "7: Download"]
+    "7: Review",
+    "8: Download"]
 
 page = st.sidebar.radio("Data Cleaning Steps:", pagelist, index=0)
 st.sidebar.markdown("")
@@ -753,8 +754,112 @@ elif page == "6: Translation":
                 st.session_state.df_social = social
                 st.experimental_rerun()
 
+# ADD REVIEW STEP WITH EXPANDERS FOR TRAD / SOCIAL
+# basic metrics + charts
+elif page == "7: Review":
+    st.title('Review')
+    if st.session_state.upload_step == False:
+        st.error('Please upload a CSV before trying this step.')
+    elif st.session_state.standard_step == False:
+        st.error('Please run the Standard Cleaning before trying this step.')
+    else:
+        traditional = st.session_state.df_traditional
+        social = st.session_state.df_social
 
-elif page == "7: Download":
+        if len(traditional) > 0:
+            with st.expander("Traditional"):
+                col1, col2 = st.columns(2)
+                with col1:
+                    st.subheader("Basic Metrics")
+                    st.metric(label="Mentions", value="{:,}".format(len(traditional)))
+                    st.metric(label="Impressions", value="{:,}".format(traditional['Impressions'].sum()))
+                    # st.metric(label="AVE", value="{:,}".format(data['AVE'].sum()))
+                with col2:
+                    st.subheader("Media Type")
+                    st.write(traditional['Type'].value_counts())
+
+                col3, col4 = st.columns(2)
+                with col3:
+                    st.subheader("Top Authors")
+                    top_authors = (top_x_by_mentions(traditional, "Author"))
+                    st.write(top_authors)
+
+                with col4:
+                    st.subheader("Top Outlets")
+                    top_outlets = (top_x_by_mentions(traditional, "Outlet"))
+                    st.write(top_outlets)
+
+
+                st.markdown('##')
+                st.subheader('Mention Trend')
+
+                trend = alt.Chart(traditional).mark_line().encode(
+                    x='Date:T',
+                    y='count(Mentions):Q'
+                )
+                st.altair_chart(trend, use_container_width=True)
+
+                st.markdown('##')
+                st.subheader('Impressions Trend')
+
+                trend2 = alt.Chart(traditional).mark_line().encode(
+                    x='Date:T',
+                    y='sum(Impressions):Q'
+                )
+                st.altair_chart(trend2, use_container_width=True)
+
+                st.subheader("Cleaned Data")
+                st.dataframe(traditional)
+                st.markdown('##')
+
+        if len(social) > 0:
+            with st.expander("Social"):
+                col1, col2 = st.columns(2)
+                with col1:
+                    st.subheader("Basic Metrics")
+                    st.metric(label="Mentions", value="{:,}".format(len(social)))
+                    st.metric(label="Impressions", value="{:,}".format(social['Impressions'].sum()))
+                    # st.metric(label="AVE", value="{:,}".format(data['AVE'].sum()))
+                with col2:
+                    st.subheader("Media Type")
+                    st.write(social['Type'].value_counts())
+
+                # col3, col4 = st.columns(2)
+                # with col3:
+                #     st.subheader("Top Authors")
+                #     top_authors = (top_x_by_mentions(social, "Author"))
+                #     st.write(top_authors)
+                #
+                # with col4:
+                #     st.subheader("Top Outlets")
+                #     top_outlets = (top_x_by_mentions(social, "Outlet"))
+                #     st.write(top_outlets)
+
+
+                st.markdown('##')
+                st.subheader('Mention Trend')
+
+                trend = alt.Chart(social).mark_line().encode(
+                    x='Date:T',
+                    y='count(Mentions):Q'
+                )
+                st.altair_chart(trend, use_container_width=True)
+
+                st.markdown('##')
+                st.subheader('Impressions Trend')
+
+                trend2 = alt.Chart(social).mark_line().encode(
+                    x='Date:T',
+                    y='sum(Impressions):Q'
+                )
+                st.altair_chart(trend2, use_container_width=True)
+
+                st.subheader("Cleaned Data")
+                st.dataframe(social)
+                st.markdown('##')
+
+
+elif page == "8: Download":
     # ONLY INCLUDE CLEAN SHEETS FOR data sets that exist
     st.title('Download')
     if st.session_state.upload_step == False:
