@@ -352,6 +352,7 @@ elif page == "2: Standard Cleaning":
                     st.write('✓ Columns Sorted')
 
                 # Strip extra white space
+                data['Headline'] = data['Headline'].astype(str)
                 data['Headline'].str.strip()
                 data['Outlet'].str.strip()
                 data['Author'].str.strip()
@@ -472,8 +473,10 @@ elif page == "3: Impressions - Outliers":
     st.title('Impressions - Outliers')
     if st.session_state.upload_step == False:
         st.error('Please upload a CSV before trying this step.')
+    elif len(traditional) == 0:
+        st.subheader("No traditional media in data. Skip to next step.")
     elif st.session_state.standard_step == False:
-        st.error('Please run the Standard Cleaning before trying this step.')
+            st.error('Please run the Standard Cleaning before trying this step.')
     else:
         st.subheader('Check highest impressions numbers:')
         outliers = traditional[['Outlet', 'Type', 'Impressions', 'Headline', 'URL', 'Country']].nlargest(100, 'Impressions')
@@ -501,10 +504,17 @@ elif page == "3: Impressions - Outliers":
 
 elif page == "4: Impressions - Fill Blanks":
     st.title('Impressions - Fill Blanks')
+    traditional = st.session_state.df_traditional
+
     if st.session_state.upload_step == False:
         st.error('Please upload a CSV before trying this step.')
+
+    elif len(traditional) == 0:
+        st.subheader("No traditional media in data. Skip to next step.")
+
     elif st.session_state.standard_step == False:
         st.error('Please run the Standard Cleaning before trying this step.')
+
     elif st.session_state.outliers == False:
         st.error('Please confirm outliers step is complete before running this step.')
         done_outliers = st.button('Done with outliers')
@@ -568,12 +578,15 @@ elif page == "4: Impressions - Fill Blanks":
 
 elif page == "5: Authors":
     st.title('Authors')
+    traditional = st.session_state.df_traditional
+
     if st.session_state.upload_step == False:
         st.error('Please upload a CSV before trying this step.')
+    elif len(traditional) == 0:
+        st.subheader("No traditional media in data. Skip to next step.")
     elif st.session_state.standard_step == False:
         st.error('Please run the Standard Cleaning before trying this step.')
     else:
-        traditional = st.session_state.df_traditional
         counter = st.session_state.counter
         original_top_authors = st.session_state.original_auths
 
