@@ -167,13 +167,18 @@ if 'translated_summary' not in st.session_state:
     st.session_state.translated_summary = False
 if 'translated_snippet' not in st.session_state:
     st.session_state.translated_snippet = False
+if 'filled' not in st.session_state:
+    st.session_state.filled = False
+if 'original_trad_auths' not in st.session_state:
+    st.session_state.original_trad_auths = pd.DataFrame()
+
 
 
 # Sidebar and page selector
 st.sidebar.image('https://agilitypr.news/images/Agility-centered.svg', width=200)
 st.sidebar.title('MIG: Data Cleaning App')
 pagelist = [
-    "1: Upload your CSV",
+    "1: Getting Started",
     "2: Standard Cleaning",
     "3: Impressions - Outliers",
     "4: Impressions - Fill Blanks",
@@ -191,95 +196,118 @@ st.sidebar.markdown("")
 st.sidebar.markdown("")
 st.sidebar.markdown("")
 st.sidebar.markdown("")
-st.sidebar.caption("v.1.5.1")
+st.sidebar.caption("v.1.5.1.1")
 
-if page == "1: Upload your CSV":
-    st.session_state['page'] = '1: Upload your CSV'
+if page == "1: Getting Started":
+    # st.session_state['page'] = '1: Getting Started'
     st.title('Getting Started')
 
-    with st.form("my_form"):
-        client = st.text_input('Client organization name*', placeholder='eg. Air Canada', key='client', help='Required to build export file name.')
-        period = st.text_input('Reporting period or focus*', placeholder='eg. March 2022', key='period', help='Required to build export file name.')
-        uploaded_file = st.file_uploader(label='Upload your CSV*', type='csv',
-                                         accept_multiple_files=False, help='Only use CSV files exported from the Agility Platform.')
+    if st.session_state.upload_step == True:
+        st.success('File uploaded.')
+        st.write("Refresh your browser to start again.")
 
-        submitted = st.form_submit_button("Submit")
-        if submitted and (client == "" or period == "" or uploaded_file == None):
-             st.error('Missing required form inputs above.')
+    else:
 
-        elif submitted:
-            data = pd.read_csv(uploaded_file)
-            data = data.dropna(thresh=2)
-            st.session_state.df_uncleaned = data
-            st.session_state.df_raw = data
-            st.session_state.upload_step = True
-            data["Mentions"] = 1
-            data['Audience Reach'] = data['Audience Reach'].astype('Int64')
-            st.session_state.export_name = f"{client} - {period} - clean_data.xlsx"
-            st.session_state.page_subtitle = f"{client} - {period}"
-            st.header('Exploratory Data Analysis')
-            col1, col2 = st.columns(2)
-            with col1:
-                st.subheader("Basic Metrics")
-                st.metric(label="Mentions", value="{:,}".format(len(data)))
-                st.metric(label="Impressions", value="{:,}".format(data['Audience Reach'].sum()))
-                # st.metric(label="AVE", value="{:,}".format(data['AVE'].sum()))
-            with col2:
-                st.subheader("Media Type")
-                st.write(data['Media Type'].value_counts())
+        with st.form("my_form"):
+            client = st.text_input('Client organization name*', placeholder='eg. Air Canada', key='client', help='Required to build export file name.')
+            period = st.text_input('Reporting period or focus*', placeholder='eg. March 2022', key='period', help='Required to build export file name.')
+            uploaded_file = st.file_uploader(label='Upload your CSV*', type='csv',
+                                             accept_multiple_files=False, help='Only use CSV files exported from the Agility Platform.')
 
-            col3, col4 = st.columns(2)
-            with col3:
-                st.subheader("Top Authors")
-                original_top_authors = (top_x_by_mentions(data, "Author"))
-                st.write(original_top_authors)
-                st.session_state.original_auths = original_top_authors
-            with col4:
-                st.subheader("Top Outlets")
-                original_top_outlets = (top_x_by_mentions(data, "Outlet"))
-                st.write(original_top_outlets)
-            #
-            # source = data['Sentiment'].value_counts().reset_index()
-            # sentiment = alt.Chart(source).mark_arc().encode(
-            #     theta=alt.Theta(field="Sentiment", type="quantitative"),
-            #     color=alt.Color(field="index", type="nominal")
-            # )
-            #
-            # st.altair_chart(sentiment, use_container_width=True)
+            submitted = st.form_submit_button("Submit")
+            if submitted and (client == "" or period == "" or uploaded_file == None):
+                 st.error('Missing required form inputs above.')
 
-            st.markdown('##')
-            st.subheader('Mention Trend')
+            elif submitted:
+                data = pd.read_csv(uploaded_file)
+                data = data.dropna(thresh=2)
+                st.session_state.df_uncleaned = data
+                st.session_state.df_raw = data
+                st.session_state.upload_step = True
+                data["Mentions"] = 1
+                data['Audience Reach'] = data['Audience Reach'].astype('Int64')
+                st.session_state.export_name = f"{client} - {period} - clean_data.xlsx"
+                st.session_state.page_subtitle = f"{client} - {period}"
+                st.header('Exploratory Data Analysis')
+                col1, col2 = st.columns(2)
+                with col1:
+                    st.subheader("Basic Metrics")
+                    st.metric(label="Mentions", value="{:,}".format(len(data)))
+                    st.metric(label="Impressions", value="{:,}".format(data['Audience Reach'].sum()))
+                    # st.metric(label="AVE", value="{:,}".format(data['AVE'].sum()))
+                with col2:
+                    st.subheader("Media Type")
+                    st.write(data['Media Type'].value_counts())
 
-            trend = alt.Chart(data).mark_line().encode(
-                x='Published Date:T',
-                y='count(Mentions):Q'
-            )
-            st.altair_chart(trend, use_container_width=True)
+                col3, col4 = st.columns(2)
+                with col3:
+                    st.subheader("Top Authors")
+                    original_top_authors = (top_x_by_mentions(data, "Author"))
+                    st.write(original_top_authors)
+                    st.session_state.original_auths = original_top_authors
+                with col4:
+                    st.subheader("Top Outlets")
+                    original_top_outlets = (top_x_by_mentions(data, "Outlet"))
+                    st.write(original_top_outlets)
+                #
+                # source = data['Sentiment'].value_counts().reset_index()
+                # sentiment = alt.Chart(source).mark_arc().encode(
+                #     theta=alt.Theta(field="Sentiment", type="quantitative"),
+                #     color=alt.Color(field="index", type="nominal")
+                # )
+                #
+                # st.altair_chart(sentiment, use_container_width=True)
 
-            st.markdown('##')
-            st.subheader('Impressions Trend')
-            # data['Published Date'] = pd.to_datetime(data['Published Date'])
+                st.markdown('##')
+                st.subheader('Mention Trend')
 
-            trend2 = alt.Chart(data).mark_line().encode(
-                x='Published Date:T',
-                y='sum(Audience Reach):Q'
-            )
-            st.altair_chart(trend2, use_container_width=True)
+                trend = alt.Chart(data).mark_line().encode(
+                    x='Published Date:T',
+                    y='count(Mentions):Q'
+                )
+                st.altair_chart(trend, use_container_width=True)
 
-            st.subheader("Raw Data")
-            st.dataframe(data)
-            st.markdown('##')
+                st.markdown('##')
+                st.subheader('Impressions Trend')
+                # data['Published Date'] = pd.to_datetime(data['Published Date'])
 
-            with st.expander('Data set stats'):
-                buffer = io.StringIO()
-                data.info(buf=buffer)
-                s = buffer.getvalue()
-                st.text(s)
+                trend2 = alt.Chart(data).mark_line().encode(
+                    x='Published Date:T',
+                    y='sum(Audience Reach):Q'
+                )
+                st.altair_chart(trend2, use_container_width=True)
+
+                st.subheader("Raw Data")
+                st.dataframe(data)
+                st.markdown('##')
+
+                with st.expander('Data set stats'):
+                    buffer = io.StringIO()
+                    data.info(buf=buffer)
+                    s = buffer.getvalue()
+                    st.text(s)
 
 elif page == "2: Standard Cleaning":
     st.title('Standard Cleaning')
     if st.session_state.upload_step == False:
         st.error('Please upload a CSV before trying this step.')
+    elif st.session_state.standard_step:
+        st.success("Standard cleaning already done!")
+        traditional = st.session_state.df_traditional
+        social = st.session_state.df_social
+        dupes = st.session_state.df_dupes
+        if len(traditional) > 0:
+            with st.expander("Traditional"):
+                # st.subheader("Traditional")
+                st.dataframe(traditional)
+        if len(social) > 0:
+            with st.expander("Social"):
+                # st.subheader("Social")
+                st.dataframe(social)
+        if len(dupes) > 0:
+            with st.expander("Deleted Duplicates"):
+                # st.subheader("Deleted Duplicates")
+                st.dataframe(dupes)
     else:
         data = st.session_state.df_raw
         # data['Published Date'] = pd.to_datetime(data['Published Date'])
@@ -463,13 +491,14 @@ elif page == "2: Standard Cleaning":
                     # st.subheader("Deleted Duplicates")
                         st.dataframe(dupes)
 
+                original_trad_auths = (top_x_by_mentions(data, "Author"))
+                st.session_state.original_trad_auths = original_trad_auths
+
                 st.session_state.df_traditional = data
                 st.session_state.df_social = social
                 st.session_state.df_dupes = dupes
 
                 st.session_state.standard_step = True
-
-    # if len(data) > 0:
 
 
 
@@ -520,6 +549,9 @@ elif page == "4: Impressions - Fill Blanks":
 
     elif st.session_state.standard_step == False:
         st.error('Please run the Standard Cleaning before trying this step.')
+
+    elif st.session_state.filled == True:
+        st.success("Missing impressions fill complete!")
 
     elif st.session_state.outliers == False:
         st.error('Please confirm outliers step is complete before running this step.')
@@ -579,13 +611,15 @@ elif page == "4: Impressions - Fill Blanks":
                         filldict[fill_blank_impressions_with])
                     traditional['Impressions'] = traditional['Impressions'].astype(int)
                     st.session_state.df_traditional = traditional
+                    st.session_state.filled = True
                     st.experimental_rerun()
-                    # st.success("Missing impressions filled!")
+
 
 
 elif page == "5: Authors":
     st.title('Authors')
     traditional = st.session_state.df_traditional
+    original_trad_auths = st.session_state.original_trad_auths
 
     if st.session_state.upload_step == False:
         st.error('Please upload a CSV before trying this step.')
@@ -682,9 +716,8 @@ elif page == "5: Authors":
         with col1:
             st.subheader("Original Top Authors")
             # st.write(original_top_authors)
-            original_top_authors = (top_x_by_mentions(traditional, "Author"))
-            st.write(original_top_authors)
-            st.session_state.original_auths = original_top_authors
+            st.write(original_trad_auths)
+
 
         with col2:
             st.subheader("New Top Authors")
@@ -726,7 +759,7 @@ elif page == "6: Translation":
                 if st.session_state.translated_headline == False:
                     headline_to_english = st.checkbox('Headline')
                 else:
-                    st.write('✓ Headlines already translated.')
+                    st.success('✓ Headlines translated.')
                     headline_to_english = False
             else:
                 headline_to_english = False
@@ -734,13 +767,13 @@ elif page == "6: Translation":
             if st.session_state.translated_snippet == False:
                 snippet_to_english = st.checkbox('Snippet')
             else:
-                st.write('✓ Snippets already translated.')
+                st.success('✓ Snippets translated.')
                 snippet_to_english = False
 
             if st.session_state.translated_summary == False:
                 summary_to_english = st.checkbox('Summary')
             else:
-                st.write('✓ Summaries already translated.')
+                st.success('✓ Summaries translated.')
                 summary_to_english = False
 
             submitted = st.form_submit_button("Go!")
