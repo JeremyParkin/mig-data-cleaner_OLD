@@ -686,7 +686,6 @@ elif page == "5: Authors":
 
 
 elif page == "6: Translation":
-    # NEED BETTER SOCIAL TREATMENT HERE
     st.title('Translation')
     traditional = st.session_state.df_traditional
     social = st.session_state.df_social
@@ -701,15 +700,24 @@ elif page == "6: Translation":
     else:
         translation_stats_combo()
         if len(traditional) > 0:
-            st.dataframe(traditional[traditional['Language'] != 'English'][['Outlet', 'Headline','Snippet','Summary','Language','Country']])
+            with st.expander("Traditional - Non-English"):
+                st.dataframe(traditional[traditional['Language'] != 'English'][['Outlet', 'Headline','Snippet','Summary','Language','Country']])
+
+        if len(social) > 0:
+            with st.expander("Social - Non-English"):
+                st.dataframe(social[social['Language'] != 'English'][
+                                 ['Outlet', 'Snippet', 'Summary', 'Language', 'Country']])
 
         with st.form('translation_form'):
             st.subheader("Pick columns for translations")
 
-            if st.session_state.translated_headline == False:
-                headline_to_english = st.checkbox('Headline')
+            if len(traditional) > 0:
+                if st.session_state.translated_headline == False:
+                    headline_to_english = st.checkbox('Headline')
+                else:
+                    st.write('✓ Headlines already translated.')
+                    headline_to_english = False
             else:
-                st.write('✓ Headlines already translated.')
                 headline_to_english = False
 
             if st.session_state.translated_snippet == False:
@@ -747,6 +755,7 @@ elif page == "6: Translation":
 
 
 elif page == "7: Download":
+    # ONLY INCLUDE CLEAN SHEETS FOR data sets that exist
     st.title('Download')
     if st.session_state.upload_step == False:
         st.error('Please upload a CSV before trying this step.')
@@ -759,9 +768,9 @@ elif page == "7: Download":
         uncleaned = st.session_state.df_uncleaned
         export_name = st.session_state.export_name
 
-        # traditional['Date'] = pd.to_datetime(traditional['Date'])
-        # social['Date'] = pd.to_datetime(social['Date'])
-        # dupes['Date'] = pd.to_datetime(dupes['Date'])
+        traditional['Date'] = pd.to_datetime(traditional['Date'])
+        social['Date'] = pd.to_datetime(social['Date'])
+        dupes['Date'] = pd.to_datetime(dupes['Date'])
 
         with st.form("my_form_download"):
             st.subheader("Generate your cleaned data workbook")
