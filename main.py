@@ -649,8 +649,8 @@ elif page == "5: Authors":
 
             with st.form('auth updater', clear_on_submit=True):
 
-                box_author = st.selectbox('Possible Authors', possibles, help='Pick from one of the authors already associated with this headline.')
-                string_author = st.text_input("What name should be applied to the author field?", help='Override above selection by writing in a custom name.')
+                box_author = st.selectbox('Pick from possible Authors', possibles, help='Pick from one of the authors already associated with this headline.')
+                string_author = st.text_input("OR: Write in the author name", help='Override above selection by writing in a custom name.')
 
                 if len(string_author) > 0:
                     new_author = string_author
@@ -716,6 +716,7 @@ elif page == "6: Translation":
 
         with st.form('translation_form'):
             st.subheader("Pick columns for translations")
+            st.warning("WARNING: Translation will over-write the original text.")
 
             if len(traditional) > 0:
                 if st.session_state.translated_headline == False:
