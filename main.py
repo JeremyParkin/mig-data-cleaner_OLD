@@ -191,7 +191,7 @@ st.sidebar.markdown("")
 st.sidebar.markdown("")
 st.sidebar.markdown("")
 st.sidebar.markdown("")
-st.sidebar.caption("v.1.5.0")
+st.sidebar.caption("v.1.5.1")
 
 if page == "1: Upload your CSV":
     st.session_state['page'] = '1: Upload your CSV'
