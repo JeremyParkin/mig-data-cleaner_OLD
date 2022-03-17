@@ -12,13 +12,13 @@ import warnings
 import altair as alt
 warnings.filterwarnings('ignore')
 
-st.set_page_config(layout="wide", page_title="MIG Data Cleaning App")
-# hide_menu_style = """
-#         <style>
-#         footer {visibility: hidden;}
-#         </style>
-#         """
-# st.markdown(hide_menu_style, unsafe_allow_html=True)
+st.set_page_config(layout="wide", page_title="MIG Data Cleaning App", page_icon="https://www.agilitypr.com/wp-content/uploads/2018/02/favicon-192.png")
+hide_menu_style = """
+        <style>
+        footer {visibility: hidden;}
+        </style>
+        """
+st.markdown(hide_menu_style, unsafe_allow_html=True)
 
 def yahoo_cleanup(url_string):
   data.loc[data['URL'].str.contains(url_string, na=False), "Outlet"] = "Yahoo! News"
@@ -160,7 +160,6 @@ if 'original_auths' not in st.session_state:
     st.session_state.original_auths = pd.DataFrame()
 if 'counter' not in st.session_state:
     st.session_state.counter = 0
-
 if 'translated_headline' not in st.session_state:
     st.session_state.translated_headline = False
 if 'translated_summary' not in st.session_state:
@@ -172,27 +171,39 @@ if 'translated_snippet' not in st.session_state:
 # Sidebar and page selector
 st.sidebar.image('https://agilitypr.news/images/Agility-centered.svg', width=200)
 st.sidebar.title('MIG: Data Cleaning App')
-page = st.sidebar.radio("Data Cleaning Steps:", [
+pagelist = [
     "1: Upload your CSV",
     "2: Standard Cleaning",
     "3: Impressions - Outliers",
     "4: Impressions - Fill Blanks",
     "5: Authors",
     "6: Translation",
-    "7: Download"], index=0)
+    "7: Download"]
+
+page = st.sidebar.radio("Data Cleaning Steps:", pagelist, index=0)
+st.sidebar.markdown("")
+st.sidebar.markdown("")
+st.sidebar.markdown("")
+st.sidebar.markdown("")
+st.sidebar.markdown("")
+st.sidebar.markdown("")
+st.sidebar.markdown("")
+st.sidebar.markdown("")
+st.sidebar.caption("v.1.5.0")
 
 if page == "1: Upload your CSV":
     st.session_state['page'] = '1: Upload your CSV'
-    st.header('Getting Started')
+    st.title('Getting Started')
 
     with st.form("my_form"):
         client = st.text_input('Client organization name*', placeholder='eg. Air Canada', key='client', help='Required to build export file name.')
         period = st.text_input('Reporting period or focus*', placeholder='eg. March 2022', key='period', help='Required to build export file name.')
         uploaded_file = st.file_uploader(label='Upload your CSV*', type='csv',
                                          accept_multiple_files=False, help='Only use CSV files exported from the Agility Platform.')
+
         submitted = st.form_submit_button("Submit")
         if submitted and (client == "" or period == "" or uploaded_file == None):
-            st.error('Missing required form inputs above.')
+             st.error('Missing required form inputs above.')
 
         elif submitted:
             data = pd.read_csv(uploaded_file)
@@ -225,7 +236,7 @@ if page == "1: Upload your CSV":
                 st.subheader("Top Outlets")
                 original_top_outlets = (top_x_by_mentions(data, "Outlet"))
                 st.write(original_top_outlets)
-
+            #
             # source = data['Sentiment'].value_counts().reset_index()
             # sentiment = alt.Chart(source).mark_arc().encode(
             #     theta=alt.Theta(field="Sentiment", type="quantitative"),
@@ -236,7 +247,6 @@ if page == "1: Upload your CSV":
 
             st.markdown('##')
             st.subheader('Mention Trend')
-            # data['Published Date'] = pd.to_datetime(data['Published Date'])
 
             trend = alt.Chart(data).mark_line().encode(
                 x='Published Date:T',
@@ -258,26 +268,42 @@ if page == "1: Upload your CSV":
             st.dataframe(data)
             st.markdown('##')
 
-            st.subheader("Data Stats")
-            buffer = io.StringIO()
-            data.info(buf=buffer)
-            s = buffer.getvalue()
-            st.text(s)
-    # if st.button('Next page'):
-    #     st.write('Hello?')
-    #     st.session_state.page = "2: Standard Cleaning"
-        # st.session_state['page'] = '1: Upload your CSV'
+            with st.expander('Data set stats'):
+                buffer = io.StringIO()
+                data.info(buf=buffer)
+                s = buffer.getvalue()
+                st.text(s)
 
 elif page == "2: Standard Cleaning":
-    st.header('Standard Cleaning')
+    st.title('Standard Cleaning')
     if st.session_state.upload_step == False:
         st.error('Please upload a CSV before trying this step.')
     else:
         data = st.session_state.df_raw
+        # data['Published Date'] = pd.to_datetime(data['Published Date'])
+        # data = data.rename(columns={
+        #     'Published Date': 'Date'})
+        # min_date = (data.Date.min().date())
+        # max_date = (data.Date.max().date())
+        # # st.write(min_date)
+        # # st.write(max_date)
+        # st.write(min_date).floor('D')
+        #
+        # date_range = st.date_input('Date Range', value=[min_date, max_date], min_value=min_date, max_value=max_date)
+        # #
+        # st.write(type(min_date))
+        # st.write(type(data.Date[4]))
+
         with st.form("my_form_basic_cleaning"):
-            st.subheader("Run standard cleaning")
+            # st.subheader("Adjust the Date Range")
+            # # date_range = st.date_input('Date Range', value=[min_date, max_date], min_value=min_date, max_value=max_date)
+            # start_date = st.date_input('Start Date', value=min_date, min_value=min_date, max_value=max_date)
+            # end_date = st.date_input('End Date', value=max_date, min_value=min_date, max_value=max_date)
             submitted = st.form_submit_button("Go!")
             if submitted:
+            #     # greater than the start date and smaller than the end date
+            #     mask = (data['Date'] >= start_date) & (data['Date'] <= end_date)
+            #     data = data.loc[mask]
                 data = data.rename(columns={
                     'Published Date': 'Date',
                     'Published Time': 'Time',
@@ -393,23 +419,18 @@ elif page == "2: Standard Cleaning":
                 # Drop dupes
                 broadcast_array = ['RADIO', 'TV']
                 broadcast = data.loc[data['Type'].isin(broadcast_array)]
-
                 # DROP BROADCAST
                 index_names = data[(data['Type'] == 'RADIO')].index
                 data.drop(index_names, inplace=True)
                 index_names = data[(data['Type'] == 'TV')].index
                 data.drop(index_names, inplace=True)
-
                 # Add temporary dupe URL helper column
                 data['URL Helper'] = data['URL'].str.lower()
                 data['URL Helper'] = data['URL Helper'].str.replace('http:', 'https:')
-
                 # Save duplicate URLS
                 dupe_urls = data[data['URL Helper'].duplicated(keep='first') == True]
                 # Drop duplicate URLs
-                data = data[
-                    data['URL Helper'].isnull() | ~data[data['URL Helper'].notnull()].duplicated(subset='URL Helper',
-                                                                                                 keep='first')]
+                data = data[data['URL Helper'].isnull() | ~data[data['URL Helper'].notnull()].duplicated(subset='URL Helper', keep='first')]
                 # Drop URL Helper column
                 data.drop(["URL Helper"], axis=1, inplace=True, errors='ignore')
                 dupe_urls.drop(["URL Helper"], axis=1, inplace=True, errors='ignore')
@@ -419,7 +440,6 @@ elif page == "2: Standard Cleaning":
                 # Drop other duplicates based on TYPE + OUTLET + HEADLINE
                 data.drop(["dupe_helper"], axis=1, inplace=True, errors='ignore')
                 dupe_cols.drop(["dupe_helper"], axis=1, inplace=True, errors='ignore')
-
                 frames = [data, broadcast]
                 data = pd.concat(frames)
                 dupes = pd.concat([dupe_urls, dupe_cols])
@@ -427,14 +447,17 @@ elif page == "2: Standard Cleaning":
                     st.write('✓ Duplicates Removed')
 
                 if len(data) > 0:
-                    st.subheader("Traditional")
-                    st.dataframe(data)
+                    with st.expander("Traditional"):
+                    # st.subheader("Traditional")
+                        st.dataframe(data)
                 if len(social) > 0:
-                    st.subheader("Social")
-                    st.dataframe(social)
+                    with st.expander("Social"):
+                    # st.subheader("Social")
+                        st.dataframe(social)
                 if len(dupes) > 0:
-                    st.subheader("Deleted Dupes")
-                    st.dataframe(dupes)
+                    with st.expander("Deleted Duplicates"):
+                    # st.subheader("Deleted Duplicates")
+                        st.dataframe(dupes)
 
                 st.session_state.df_traditional = data
                 st.session_state.df_social = social
@@ -442,17 +465,11 @@ elif page == "2: Standard Cleaning":
 
                 st.session_state.standard_step = True
 
-                # Dual axis trend chart
-                # base = alt.Chart(data).encode(x='Date:T')
-                # bar = base.mark_bar(size=20).encode(y='count(Mentions):Q')
-                # line = base.mark_line(color='red').encode(y='Impressions:Q')
-                # trend3 = alt.layer(bar, line).resolve_scale(y='independent')
-                # st.altair_chart(trend3, use_container_width=True)
 
 
 elif page == "3: Impressions - Outliers":
     traditional = st.session_state.df_traditional
-    st.header('Impressions - Outliers')
+    st.title('Impressions - Outliers')
     if st.session_state.upload_step == False:
         st.error('Please upload a CSV before trying this step.')
     elif st.session_state.standard_step == False:
@@ -464,11 +481,11 @@ elif page == "3: Impressions - Outliers":
         st.dataframe(outliers)
         outlier_index = outliers.index.values.tolist()
 
-        with st.form("Update Outliers"):
+        with st.form("Update Outliers", clear_on_submit=True):
             st.subheader("Update Impressions Outliers")
             index_numbers = st.multiselect('Row index number(s): ', outlier_index,
                                                help='Select the row number from the table above.')
-            new_impressions_value = int(st.number_input('New impressions value for row', step=1, format='%i', help='Write in the new impression value for the selected row.'))
+            new_impressions_value = int(st.number_input('New impressions value for row(s)', step=1, help='Write in the new impression value for the selected row.'))
             submitted = st.form_submit_button("Go!")
             if submitted:
                 for index_number in index_numbers:
@@ -483,7 +500,7 @@ elif page == "3: Impressions - Outliers":
                 st.session_state.outliers = True
 
 elif page == "4: Impressions - Fill Blanks":
-    st.header('Impressions - Fill Blanks')
+    st.title('Impressions - Fill Blanks')
     if st.session_state.upload_step == False:
         st.error('Please upload a CSV before trying this step.')
     elif st.session_state.standard_step == False:
@@ -510,7 +527,9 @@ elif page == "4: Impressions - Fill Blanks":
         fifteenth_percentile = "{:,}".format(int(traditional.Impressions.quantile(0.15)))
         decile = "{:,}".format(int(traditional.Impressions.quantile(0.1)))
 
-        st.write(f"\n*************\nMISSING: {blank_impressions}\n*************\n")
+        # st.markdown(f"*************")
+        st.markdown(f"#### MISSING: {blank_impressions}")
+        st.write("*************")
 
         col1, col2 = st.columns(2)
         with col1:
@@ -548,7 +567,7 @@ elif page == "4: Impressions - Fill Blanks":
 
 
 elif page == "5: Authors":
-    st.header('Authors')
+    st.title('Authors')
     if st.session_state.upload_step == False:
         st.error('Please upload a CSV before trying this step.')
     elif st.session_state.standard_step == False:
@@ -572,7 +591,7 @@ elif page == "5: Authors":
         if counter < len(temp_headline_list):
             headline_text = temp_headline_list.iloc[counter]['Headline']
 
-            but1, but2 = st.columns(2)
+            but1, col3, but2 = st.columns(3)
             with but1:
                 next_auth = st.button('Skip to Next Headline')
                 if next_auth:
@@ -581,12 +600,15 @@ elif page == "5: Authors":
                     st.experimental_rerun()
 
             if counter > 0:
+                with col3:
+                    st.write(f"Skipped: {counter}")
                 with but2:
-                    reset_counter = st.button('Reset Counter')
+                    reset_counter = st.button('Reset Skip Counter')
                     if reset_counter:
                         counter = 0
                         st.session_state.counter = counter
                         st.experimental_rerun()
+
 
             possibles = headline_authors(traditional, headline_text)['index'].tolist()
             possibles.append('- other - ')
@@ -651,7 +673,7 @@ elif page == "5: Authors":
 
 
 elif page == "6: Translation":
-    st.header('Translation')
+    st.title('Translation')
     traditional = st.session_state.df_traditional
     social = st.session_state.df_social
     if st.session_state.upload_step == False:
@@ -710,7 +732,7 @@ elif page == "6: Translation":
 
 
 elif page == "7: Download":
-    st.header('Download')
+    st.title('Download')
     if st.session_state.upload_step == False:
         st.error('Please upload a CSV before trying this step.')
     elif st.session_state.standard_step == False:
@@ -722,9 +744,9 @@ elif page == "7: Download":
         uncleaned = st.session_state.df_uncleaned
         export_name = st.session_state.export_name
 
-        traditional['Date'] = pd.to_datetime(traditional['Date'])
-        social['Date'] = pd.to_datetime(social['Date'])
-        dupes['Date'] = pd.to_datetime(dupes['Date'])
+        # traditional['Date'] = pd.to_datetime(traditional['Date'])
+        # social['Date'] = pd.to_datetime(social['Date'])
+        # dupes['Date'] = pd.to_datetime(dupes['Date'])
 
         with st.form("my_form_download"):
             st.subheader("Generate your cleaned data workbook")
