@@ -226,8 +226,8 @@ if page == "1: Getting Started":
                 st.session_state.upload_step = True
 
                 data['Audience Reach'] = data['Audience Reach'].astype('Int64')
+                data['AVE'] = data['AVE'].fillna(0)
                 st.session_state.export_name = f"{client} - {period} - clean_data.xlsx"
-                # st.session_state.page_subtitle = f"{client} - {period}"
                 st.header('Exploratory Data Analysis')
                 col1, col2 = st.columns(2)
                 with col1:
