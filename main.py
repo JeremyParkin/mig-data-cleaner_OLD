@@ -199,12 +199,11 @@ st.sidebar.markdown("")
 st.sidebar.caption("v.1.5.1.1")
 
 if page == "1: Getting Started":
-    # st.session_state['page'] = '1: Getting Started'
     st.title('Getting Started')
 
     if st.session_state.upload_step == True:
         st.success('File uploaded.')
-        st.write("Refresh your browser to start again.")
+        st.write("Refresh your browser to start over.")
 
     else:
 
@@ -461,6 +460,7 @@ elif page == "2: Standard Cleaning":
                 data['URL Helper'] = data['URL Helper'].str.replace('http:', 'https:')
                 # Save duplicate URLS
                 dupe_urls = data[data['URL Helper'].duplicated(keep='first') == True]
+                dupe_urls = dupe_urls.dropna(subset=["URL Helper"])
                 # Drop duplicate URLs
                 data = data[data['URL Helper'].isnull() | ~data[data['URL Helper'].notnull()].duplicated(subset='URL Helper', keep='first')]
                 # Drop URL Helper column
@@ -469,7 +469,11 @@ elif page == "2: Standard Cleaning":
                 # SAVE duplicates based on TYPE + OUTLET + HEADLINE
                 data["dupe_helper"] = data['Type'] + data['Outlet'] + data['Headline']
                 dupe_cols = data[data['dupe_helper'].duplicated(keep='first') == True]
+                dupe_cols = dupe_cols.dropna(subset=["dupe_helper"])
                 # Drop other duplicates based on TYPE + OUTLET + HEADLINE
+                data = data[data['dupe_helper'].isnull() | ~data[data['dupe_helper'].notnull()].duplicated(subset='dupe_helper',
+                                                                                               keep='first')]
+                # Drop helper column and rejoin broadcast
                 data.drop(["dupe_helper"], axis=1, inplace=True, errors='ignore')
                 dupe_cols.drop(["dupe_helper"], axis=1, inplace=True, errors='ignore')
                 frames = [data, broadcast]
