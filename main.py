@@ -7,8 +7,6 @@ import io
 from deep_translator import GoogleTranslator
 from titlecase import titlecase
 import warnings
-# from datetime import datetime
-# import plotly.graph_objects as go
 import altair as alt
 warnings.filterwarnings('ignore')
 
@@ -108,7 +106,6 @@ def author_matcher(counter):
 
 def translate_col(df, name_of_column):
     """Replaces non-English string in column with English"""
-    # st.warning("Stay on this page until translation is complete")
     unique_non_eng = list(set(df[name_of_column][df['Language'] != 'English'].dropna()))
     if '' in unique_non_eng:
         unique_non_eng.remove('')
@@ -121,7 +118,6 @@ def translate_col(df, name_of_column):
             translated_x.append(GoogleTranslator(source='auto', target='en').translate(text))
             dictionary = dict(zip(unique_non_eng, translated_x))
             df[name_of_column].replace(dictionary, inplace = True)
-    # st.success(f'Done translating {name_of_column}!')
 
 
 def translation_stats_combo():
@@ -134,6 +130,7 @@ def translation_stats_combo():
     st.write(f"There are {non_english_records} non-English records in your data.")
     st.write(f"\nAllow around {minutes}-{minutes + 1} {min_word} per column for translation.")
 
+format_dict = {'AVE':'${0:,.0f}', 'Audience Reach': '{:,d}', 'Impressions': '{:,d}'}
 
 if 'page' not in st.session_state:
     st.session_state['page'] = '1: Upload your CSV'
@@ -173,7 +170,6 @@ if 'original_trad_auths' not in st.session_state:
     st.session_state.original_trad_auths = pd.DataFrame()
 
 
-
 # Sidebar and page selector
 st.sidebar.image('https://agilitypr.news/images/Agility-centered.svg', width=200)
 st.sidebar.title('MIG: Data Cleaning App')
@@ -203,7 +199,11 @@ if page == "1: Getting Started":
 
     if st.session_state.upload_step == True:
         st.success('File uploaded.')
-        st.write("Refresh your browser to start over.")
+        if st.button('Start Over?'):
+            # Delete all the items in Session state
+            for key in st.session_state.keys():
+                del st.session_state[key]
+            st.experimental_rerun()
 
     else:
 
@@ -234,7 +234,6 @@ if page == "1: Getting Started":
                     st.subheader("Basic Metrics")
                     st.metric(label="Mentions", value="{:,}".format(len(data)))
                     st.metric(label="Impressions", value="{:,}".format(data['Audience Reach'].sum()))
-                    # st.metric(label="AVE", value="{:,}".format(data['AVE'].sum()))
                 with col2:
                     st.subheader("Media Type")
                     st.write(data['Media Type'].value_counts())
@@ -269,8 +268,6 @@ if page == "1: Getting Started":
 
                 st.markdown('##')
                 st.subheader('Impressions Trend')
-                # data['Published Date'] = pd.to_datetime(data['Published Date'])
-
                 trend2 = alt.Chart(data).mark_line().encode(
                     x='Published Date:T',
                     y='sum(Audience Reach):Q'
@@ -278,7 +275,7 @@ if page == "1: Getting Started":
                 st.altair_chart(trend2, use_container_width=True)
 
                 st.subheader("Raw Data")
-                st.dataframe(data)
+                st.dataframe(data.style.format(format_dict))
                 st.markdown('##')
 
                 with st.expander('Data set stats'):
@@ -298,16 +295,13 @@ elif page == "2: Standard Cleaning":
         dupes = st.session_state.df_dupes
         if len(traditional) > 0:
             with st.expander("Traditional"):
-                # st.subheader("Traditional")
-                st.dataframe(traditional)
+                st.dataframe(traditional.style.format(format_dict))
         if len(social) > 0:
             with st.expander("Social"):
-                # st.subheader("Social")
-                st.dataframe(social)
+                st.dataframe(social.style.format(format_dict))
         if len(dupes) > 0:
             with st.expander("Deleted Duplicates"):
-                # st.subheader("Deleted Duplicates")
-                st.dataframe(dupes)
+                st.dataframe(dupes.style.format(format_dict))
     else:
         data = st.session_state.df_raw
         # data['Published Date'] = pd.to_datetime(data['Published Date'])
@@ -407,45 +401,23 @@ elif page == "2: Standard Cleaning":
                     with col2:
                         st.write('✓ Tags Expanded')
 
-                # DROP SOCIALS To sep df
+                # SOCIALS To sep df
                 soc_array = ['FACEBOOK', 'TWITTER', 'INSTAGRAM', 'REDDIT', 'YOUTUBE']
                 social = data.loc[data['Type'].isin(soc_array)]
-
-                # DROP BROADCAST
                 data = data[~data['Type'].isin(soc_array)]
 
-
-                # index_names = data[(data['Type'] == 'FACEBOOK')].index
-                # data.drop(index_names, inplace=True)
-                # index_names = data[(data['Type'] == 'TWITTER')].index
-                # data.drop(index_names, inplace=True)
-                # index_names = data[(data['Type'] == 'INSTAGRAM')].index
-                # data.drop(index_names, inplace=True)
-                # index_names = data[(data['Type'] == 'REDDIT')].index
-                # data.drop(index_names, inplace=True)
-                # index_names = data[(data['Type'] == 'YOUTUBE')].index
-                # data.drop(index_names, inplace=True)
-                # index_names = data[(data['Type'] == 'PODCAST')].index
-                # data.drop(index_names, inplace=True)
                 with col3:
                     st.write('✓ Social Split Out')
 
                 # AP Cap
                 broadcast_array = ['RADIO', 'TV']
                 broadcast = data.loc[data['Type'].isin(broadcast_array)]
-
                 data = data[~data['Type'].isin(broadcast_array)]
-
-                # index_names = data[(data['Type'] == 'RADIO')].index
-                # data.drop(index_names, inplace=True)
-                # index_names = data[(data['Type'] == 'TV')].index
-                # data.drop(index_names, inplace=True)
-
 
                 data[['Headline']] = data[['Headline']].fillna('')
                 data['Headline'] = data['Headline'].map(lambda Headline: titlecase(Headline))
-                frames = [data, broadcast]
-                data = pd.concat(frames)
+                # frames = [data, broadcast]
+                # data = pd.concat(frames)
                 with col1:
                     st.write('✓ AP Style Capitalization')
 
@@ -458,18 +430,10 @@ elif page == "2: Standard Cleaning":
                 with col2:
                     st.write('✓ Yahoo Standardization')
 
-                # Drop dupes
-                broadcast_array = ['RADIO', 'TV']
-                broadcast = data.loc[data['Type'].isin(broadcast_array)]
-
-
-                # DROP BROADCAST
-                data = data[~data['Type'].isin(broadcast_array)]
-
-                # index_names = data[(data['Type'] == 'RADIO')].index
-                # data.drop(index_names, inplace=True)
-                # index_names = data[(data['Type'] == 'TV')].index
-                # data.drop(index_names, inplace=True)
+                # Drop dupes by url - split out broadcast
+                # broadcast_array = ['RADIO', 'TV']
+                # broadcast = data.loc[data['Type'].isin(broadcast_array)]
+                # data = data[~data['Type'].isin(broadcast_array)]
 
                 # Add temporary dupe URL helper column
                 data['URL Helper'] = data['URL'].str.lower()
@@ -480,8 +444,7 @@ elif page == "2: Standard Cleaning":
                 dupe_urls = dupe_urls.dropna(subset=["URL Helper"])
 
                 # Drop duplicate URLs
-                # data = data[data['URL Helper'].isnull() | ~data[data['URL Helper'].notnull()].duplicated(subset='URL Helper', keep='first')]
-                data = data[~data.index.isin(dupe_urls)]#.dropna(how="all")
+                data = data[~data.index.isin(dupe_urls)].dropna(how="all")
 
                 # Drop URL Helper column from both dfs
                 data.drop(["URL Helper"], axis=1, inplace=True, errors='ignore')
@@ -496,10 +459,7 @@ elif page == "2: Standard Cleaning":
                 dupe_cols = dupe_cols.dropna(subset=["Headline"])
 
                 # Drop duplicates based on TYPE + OUTLET + HEADLINE
-                # data = data[data['dupe_helper'].isnull() | ~data[data['dupe_helper'].notnull()].duplicated(subset='dupe_helper',
-                #                                                                                keep='first')]
                 data = data[~data.index.isin(dupe_cols)].dropna(how="all")
-                # data = data[~data['Type'].isin(broadcast_array)]
 
                 # Drop helper column and rejoin broadcast
                 data.drop(["dupe_helper"], axis=1, inplace=True, errors='ignore')
@@ -507,32 +467,26 @@ elif page == "2: Standard Cleaning":
                 frames = [data, broadcast]
                 traditional = pd.concat(frames)
                 dupes = pd.concat([dupe_urls, dupe_cols])
+
                 with col3:
                     st.write('✓ Duplicates Removed')
 
                 if len(traditional) > 0:
                     with st.expander("Traditional"):
-                    # st.subheader("Traditional")
-                        st.dataframe(traditional)
+                        st.dataframe(traditional.style.format(format_dict))
                 if len(social) > 0:
                     with st.expander("Social"):
-                    # st.subheader("Social")
-                        st.dataframe(social)
+                        st.dataframe(social.style.format(format_dict))
                 if len(dupes) > 0:
                     with st.expander("Deleted Duplicates"):
-                    # st.subheader("Deleted Duplicates")
                         st.dataframe(dupes)
 
                 original_trad_auths = top_x_by_mentions(traditional, "Author")
                 st.session_state.original_trad_auths = original_trad_auths
-
                 st.session_state.df_traditional = traditional
                 st.session_state.df_social = social
                 st.session_state.df_dupes = dupes
-
                 st.session_state.standard_step = True
-
-
 
 
 elif page == "3: Impressions - Outliers":
@@ -548,7 +502,7 @@ elif page == "3: Impressions - Outliers":
         st.subheader('Check highest impressions numbers:')
         outliers = traditional[['Outlet', 'Type', 'Impressions', 'Headline', 'URL', 'Country']].nlargest(100, 'Impressions')
         outliers.index.name = 'Row'
-        st.dataframe(outliers)
+        st.dataframe(outliers.style.format(format_dict))
         outlier_index = outliers.index.values.tolist()
 
         with st.form("Update Outliers", clear_on_submit=True):
@@ -593,7 +547,6 @@ elif page == "4: Impressions - Fill Blanks":
             st.experimental_rerun()
 
     else:
-        # st.subheader('Check statistical levels')
         traditional = st.session_state.df_traditional
 
         blank_impressions = traditional['Impressions'].isna().sum()
@@ -607,7 +560,6 @@ elif page == "4: Impressions - Fill Blanks":
         fifteenth_percentile = "{:,}".format(int(traditional.Impressions.quantile(0.15)))
         decile = "{:,}".format(int(traditional.Impressions.quantile(0.1)))
 
-        # st.markdown(f"*************")
         st.markdown(f"#### MISSING: {blank_impressions}")
         st.write("*************")
 
@@ -636,7 +588,7 @@ elif page == "4: Impressions - Fill Blanks":
             }
             with st.form('Fill Blanks'):
                 st.subheader("Fill Blank Impressions")
-                fill_blank_impressions_with = st.radio('Pick your statistical fill value: ', filldict.keys(), index=4)
+                fill_blank_impressions_with = st.radio('Pick your statistical fill value: ', filldict.keys(), index=5)
                 submitted = st.form_submit_button("Fill Blanks")
                 if submitted:
                     traditional[['Impressions']] = traditional[['Impressions']].fillna(
@@ -697,7 +649,6 @@ elif page == "5: Authors":
 
 
             possibles = headline_authors(traditional, headline_text)['index'].tolist()
-            possibles.append('- other - ')
 
             # CSS to inject contained in a string
             hide_table_row_index = """
@@ -717,7 +668,8 @@ elif page == "5: Authors":
             with st.form('auth updater', clear_on_submit=True):
 
                 box_author = st.selectbox('Pick from possible Authors', possibles, help='Pick from one of the authors already associated with this headline.')
-                string_author = st.text_input("OR: Write in the author name", help='Override above selection by writing in a custom name.')
+                st.markdown("#### - OR -")
+                string_author = st.text_input("Write in the author name", help='Override above selection by writing in a custom name.')
 
                 if len(string_author) > 0:
                     new_author = string_author
@@ -726,12 +678,9 @@ elif page == "5: Authors":
 
                 submitted = st.form_submit_button("Update Author")
                 if submitted:
-                    if new_author == '- other -':
-                        st.error("Oops! Try again.")
-                    else:
-                        fix_author(traditional, headline_text, new_author)
-                        st.session_state.df_traditional = traditional
-                        st.experimental_rerun()
+                    fix_author(traditional, headline_text, new_author)
+                    st.session_state.df_traditional = traditional
+                    st.experimental_rerun()
         else:
             st.write("You've reached the end of the list!")
             if counter > 0:
@@ -747,7 +696,6 @@ elif page == "5: Authors":
 
         with col1:
             st.subheader("Original Top Authors")
-            # st.write(original_top_authors)
             st.write(original_trad_auths)
 
 
@@ -818,10 +766,12 @@ elif page == "6: Translation":
                     # AP Cap
                     broadcast_array = ['RADIO', 'TV']
                     broadcast = traditional.loc[traditional['Type'].isin(broadcast_array)]
+                    # TODO: swap this for the 1 line version
                     index_names = traditional[(traditional['Type'] == 'RADIO')].index
                     traditional.drop(index_names, inplace=True)
                     index_names = traditional[(traditional['Type'] == 'TV')].index
                     traditional.drop(index_names, inplace=True)
+
                     traditional[['Headline']] = traditional[['Headline']].fillna('')
                     traditional['Headline'] = traditional['Headline'].map(lambda Headline: titlecase(Headline))
                     frames = [traditional, broadcast]
@@ -844,18 +794,6 @@ elif page == "6: Translation":
                 st.session_state.df_social = social
                 st.experimental_rerun()
 
-        # if translation done:
-        #     if len(traditional) > 0:
-        #         with st.expander("Traditional - Translated"):
-        #             st.dataframe(traditional[traditional['Language'] != 'English'][
-        #                              ['Outlet', 'Headline', 'Snippet', 'Summary', 'Language', 'Country']])
-        #
-        #     if len(social) > 0:
-        #         with st.expander("Social - Translated"):
-        #             st.dataframe(social[social['Language'] != 'English'][
-        #                              ['Outlet', 'Snippet', 'Summary', 'Language', 'Country']])
-
-# ADD REVIEW STEP WITH EXPANDERS FOR TRAD / SOCIAL
 # basic metrics + charts
 elif page == "7: Review":
     st.title('Review')
@@ -911,7 +849,7 @@ elif page == "7: Review":
                 st.altair_chart(trend2, use_container_width=True)
 
                 st.subheader("Cleaned Data")
-                st.dataframe(traditional)
+                st.dataframe(traditional.style.format(format_dict))
                 st.markdown('##')
 
         if len(social) > 0:
@@ -921,7 +859,6 @@ elif page == "7: Review":
                     st.subheader("Basic Metrics")
                     st.metric(label="Mentions", value="{:,}".format(len(social)))
                     st.metric(label="Impressions", value="{:,}".format(social['Impressions'].sum()))
-                    # st.metric(label="AVE", value="{:,}".format(data['AVE'].sum()))
                 with col2:
                     st.subheader("Media Type")
                     st.write(social['Type'].value_counts())
@@ -936,8 +873,6 @@ elif page == "7: Review":
                 #     st.subheader("Top Outlets")
                 #     top_outlets = (top_x_by_mentions(social, "Outlet"))
                 #     st.write(top_outlets)
-
-
 
                 st.markdown('##')
                 st.subheader('Mention Trend')
@@ -958,7 +893,7 @@ elif page == "7: Review":
                 st.altair_chart(trend2, use_container_width=True)
 
                 st.subheader("Cleaned Data")
-                st.dataframe(social)
+                st.dataframe(social.style.format(format_dict))
                 st.markdown('##')
 
         if len(dupes) > 0:
@@ -972,11 +907,11 @@ elif page == "7: Review":
                 with col2:
                     st.subheader("Media Type")
                     st.write(dupes['Type'].value_counts())
-                st.dataframe(dupes)
+                st.dataframe(dupes.style.format(format_dict))
 
 
 elif page == "8: Download":
-    # ONLY INCLUDE CLEAN SHEETS FOR data sets that exist
+    # TODO: ONLY INCLUDE CLEAN SHEETS FOR data sets that exist
     st.title('Download')
     if st.session_state.upload_step == False:
         st.error('Please upload a CSV before trying this step.')
