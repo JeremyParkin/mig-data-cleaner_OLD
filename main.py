@@ -196,7 +196,7 @@ st.sidebar.markdown("")
 st.sidebar.markdown("")
 st.sidebar.markdown("")
 st.sidebar.markdown("")
-st.sidebar.caption("v.1.5.1.1")
+st.sidebar.caption("v.1.5.1.2")
 
 if page == "1: Getting Started":
     st.title('Getting Started')
@@ -220,13 +220,14 @@ if page == "1: Getting Started":
             elif submitted:
                 data = pd.read_csv(uploaded_file)
                 data = data.dropna(thresh=2)
+                data["Mentions"] = 1
                 st.session_state.df_uncleaned = data
                 st.session_state.df_raw = data
                 st.session_state.upload_step = True
-                data["Mentions"] = 1
+
                 data['Audience Reach'] = data['Audience Reach'].astype('Int64')
                 st.session_state.export_name = f"{client} - {period} - clean_data.xlsx"
-                st.session_state.page_subtitle = f"{client} - {period}"
+                # st.session_state.page_subtitle = f"{client} - {period}"
                 st.header('Exploratory Data Analysis')
                 col1, col2 = st.columns(2)
                 with col1:
@@ -409,28 +410,38 @@ elif page == "2: Standard Cleaning":
                 # DROP SOCIALS To sep df
                 soc_array = ['FACEBOOK', 'TWITTER', 'INSTAGRAM', 'REDDIT', 'YOUTUBE']
                 social = data.loc[data['Type'].isin(soc_array)]
-                index_names = data[(data['Type'] == 'FACEBOOK')].index
-                data.drop(index_names, inplace=True)
-                index_names = data[(data['Type'] == 'TWITTER')].index
-                data.drop(index_names, inplace=True)
-                index_names = data[(data['Type'] == 'INSTAGRAM')].index
-                data.drop(index_names, inplace=True)
-                index_names = data[(data['Type'] == 'REDDIT')].index
-                data.drop(index_names, inplace=True)
-                index_names = data[(data['Type'] == 'YOUTUBE')].index
-                data.drop(index_names, inplace=True)
-                index_names = data[(data['Type'] == 'PODCAST')].index
-                data.drop(index_names, inplace=True)
+
+                # DROP BROADCAST
+                data = data[~data['Type'].isin(soc_array)]
+
+
+                # index_names = data[(data['Type'] == 'FACEBOOK')].index
+                # data.drop(index_names, inplace=True)
+                # index_names = data[(data['Type'] == 'TWITTER')].index
+                # data.drop(index_names, inplace=True)
+                # index_names = data[(data['Type'] == 'INSTAGRAM')].index
+                # data.drop(index_names, inplace=True)
+                # index_names = data[(data['Type'] == 'REDDIT')].index
+                # data.drop(index_names, inplace=True)
+                # index_names = data[(data['Type'] == 'YOUTUBE')].index
+                # data.drop(index_names, inplace=True)
+                # index_names = data[(data['Type'] == 'PODCAST')].index
+                # data.drop(index_names, inplace=True)
                 with col3:
                     st.write('✓ Social Split Out')
 
                 # AP Cap
                 broadcast_array = ['RADIO', 'TV']
                 broadcast = data.loc[data['Type'].isin(broadcast_array)]
-                index_names = data[(data['Type'] == 'RADIO')].index
-                data.drop(index_names, inplace=True)
-                index_names = data[(data['Type'] == 'TV')].index
-                data.drop(index_names, inplace=True)
+
+                data = data[~data['Type'].isin(broadcast_array)]
+
+                # index_names = data[(data['Type'] == 'RADIO')].index
+                # data.drop(index_names, inplace=True)
+                # index_names = data[(data['Type'] == 'TV')].index
+                # data.drop(index_names, inplace=True)
+
+
                 data[['Headline']] = data[['Headline']].fillna('')
                 data['Headline'] = data['Headline'].map(lambda Headline: titlecase(Headline))
                 frames = [data, broadcast]
@@ -450,42 +461,59 @@ elif page == "2: Standard Cleaning":
                 # Drop dupes
                 broadcast_array = ['RADIO', 'TV']
                 broadcast = data.loc[data['Type'].isin(broadcast_array)]
+
+
                 # DROP BROADCAST
-                index_names = data[(data['Type'] == 'RADIO')].index
-                data.drop(index_names, inplace=True)
-                index_names = data[(data['Type'] == 'TV')].index
-                data.drop(index_names, inplace=True)
+                data = data[~data['Type'].isin(broadcast_array)]
+
+                # index_names = data[(data['Type'] == 'RADIO')].index
+                # data.drop(index_names, inplace=True)
+                # index_names = data[(data['Type'] == 'TV')].index
+                # data.drop(index_names, inplace=True)
+
                 # Add temporary dupe URL helper column
                 data['URL Helper'] = data['URL'].str.lower()
                 data['URL Helper'] = data['URL Helper'].str.replace('http:', 'https:')
+
                 # Save duplicate URLS
                 dupe_urls = data[data['URL Helper'].duplicated(keep='first') == True]
                 dupe_urls = dupe_urls.dropna(subset=["URL Helper"])
+
                 # Drop duplicate URLs
-                data = data[data['URL Helper'].isnull() | ~data[data['URL Helper'].notnull()].duplicated(subset='URL Helper', keep='first')]
-                # Drop URL Helper column
+                # data = data[data['URL Helper'].isnull() | ~data[data['URL Helper'].notnull()].duplicated(subset='URL Helper', keep='first')]
+                data = data[~data.index.isin(dupe_urls)]#.dropna(how="all")
+
+                # Drop URL Helper column from both dfs
                 data.drop(["URL Helper"], axis=1, inplace=True, errors='ignore')
                 dupe_urls.drop(["URL Helper"], axis=1, inplace=True, errors='ignore')
+
                 # SAVE duplicates based on TYPE + OUTLET + HEADLINE
                 data["dupe_helper"] = data['Type'] + data['Outlet'] + data['Headline']
                 dupe_cols = data[data['dupe_helper'].duplicated(keep='first') == True]
                 dupe_cols = dupe_cols.dropna(subset=["dupe_helper"])
-                # Drop other duplicates based on TYPE + OUTLET + HEADLINE
-                data = data[data['dupe_helper'].isnull() | ~data[data['dupe_helper'].notnull()].duplicated(subset='dupe_helper',
-                                                                                               keep='first')]
+                dupe_cols = dupe_cols.dropna(subset=["Type"])
+                dupe_cols = dupe_cols.dropna(subset=["Outlet"])
+                dupe_cols = dupe_cols.dropna(subset=["Headline"])
+
+                # Drop duplicates based on TYPE + OUTLET + HEADLINE
+                # data = data[data['dupe_helper'].isnull() | ~data[data['dupe_helper'].notnull()].duplicated(subset='dupe_helper',
+                #                                                                                keep='first')]
+                data = data[~data.index.isin(dupe_cols)].dropna(how="all")
+                # data = data[~data['Type'].isin(broadcast_array)]
+
                 # Drop helper column and rejoin broadcast
                 data.drop(["dupe_helper"], axis=1, inplace=True, errors='ignore')
                 dupe_cols.drop(["dupe_helper"], axis=1, inplace=True, errors='ignore')
                 frames = [data, broadcast]
-                data = pd.concat(frames)
+                traditional = pd.concat(frames)
                 dupes = pd.concat([dupe_urls, dupe_cols])
                 with col3:
                     st.write('✓ Duplicates Removed')
 
-                if len(data) > 0:
+                if len(traditional) > 0:
                     with st.expander("Traditional"):
                     # st.subheader("Traditional")
-                        st.dataframe(data)
+                        st.dataframe(traditional)
                 if len(social) > 0:
                     with st.expander("Social"):
                     # st.subheader("Social")
@@ -495,10 +523,10 @@ elif page == "2: Standard Cleaning":
                     # st.subheader("Deleted Duplicates")
                         st.dataframe(dupes)
 
-                original_trad_auths = (top_x_by_mentions(data, "Author"))
+                original_trad_auths = top_x_by_mentions(traditional, "Author")
                 st.session_state.original_trad_auths = original_trad_auths
 
-                st.session_state.df_traditional = data
+                st.session_state.df_traditional = traditional
                 st.session_state.df_social = social
                 st.session_state.df_dupes = dupes
 
@@ -838,6 +866,7 @@ elif page == "7: Review":
     else:
         traditional = st.session_state.df_traditional
         social = st.session_state.df_social
+        dupes = st.session_state.df_dupes
 
         if len(traditional) > 0:
             with st.expander("Traditional"):
@@ -909,6 +938,7 @@ elif page == "7: Review":
                 #     st.write(top_outlets)
 
 
+
                 st.markdown('##')
                 st.subheader('Mention Trend')
 
@@ -930,6 +960,19 @@ elif page == "7: Review":
                 st.subheader("Cleaned Data")
                 st.dataframe(social)
                 st.markdown('##')
+
+        if len(dupes) > 0:
+            with st.expander("Duplicates Removed"):
+                col1, col2 = st.columns(2)
+                with col1:
+                    st.subheader("Basic Metrics")
+                    st.metric(label="Mentions", value="{:,}".format(len(dupes)))
+                    st.metric(label="Impressions", value="{:,}".format(dupes['Impressions'].sum()))
+                    # st.metric(label="AVE", value="{:,}".format(data['AVE'].sum()))
+                with col2:
+                    st.subheader("Media Type")
+                    st.write(dupes['Type'].value_counts())
+                st.dataframe(dupes)
 
 
 elif page == "8: Download":
