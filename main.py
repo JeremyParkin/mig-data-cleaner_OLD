@@ -192,7 +192,7 @@ st.sidebar.markdown("")
 st.sidebar.markdown("")
 st.sidebar.markdown("")
 st.sidebar.markdown("")
-st.sidebar.caption("v.1.5.1.2")
+st.sidebar.caption("v.1.5.1.3")
 
 if page == "1: Getting Started":
     st.title('Getting Started')
@@ -200,13 +200,67 @@ if page == "1: Getting Started":
     if st.session_state.upload_step == True:
         st.success('File uploaded.')
         if st.button('Start Over?'):
-            # Delete all the items in Session state
             for key in st.session_state.keys():
                 del st.session_state[key]
             st.experimental_rerun()
+        data = st.session_state.df_raw
+        st.header('Exploratory Data Analysis')
+        col1, col2 = st.columns(2)
+        with col1:
+            st.subheader("Basic Metrics")
+            st.metric(label="Mentions", value="{:,}".format(len(data.dropna(thresh=3))))
+            st.metric(label="Impressions", value="{:,}".format(data['Audience Reach'].sum()))
+        with col2:
+            st.subheader("Media Type")
+            st.write(data['Media Type'].value_counts())
+
+        col3, col4 = st.columns(2)
+        with col3:
+            st.subheader("Top Authors")
+            original_top_authors = (top_x_by_mentions(data, "Author"))
+            st.write(original_top_authors)
+            st.session_state.original_auths = original_top_authors
+        with col4:
+            st.subheader("Top Outlets")
+            original_top_outlets = (top_x_by_mentions(data, "Outlet"))
+            st.write(original_top_outlets)
+        #
+        # source = data['Sentiment'].value_counts().reset_index()
+        # sentiment = alt.Chart(source).mark_arc().encode(
+        #     theta=alt.Theta(field="Sentiment", type="quantitative"),
+        #     color=alt.Color(field="index", type="nominal")
+        # )
+        #
+        # st.altair_chart(sentiment, use_container_width=True)
+
+        st.markdown('##')
+        st.subheader('Mention Trend')
+
+        trend = alt.Chart(data).mark_line().encode(
+            x='Published Date:T',
+            y='count(Mentions):Q'
+        )
+        st.altair_chart(trend, use_container_width=True)
+
+        st.markdown('##')
+        st.subheader('Impressions Trend')
+        trend2 = alt.Chart(data).mark_line().encode(
+            x='Published Date:T',
+            y='sum(Audience Reach):Q'
+        )
+        st.altair_chart(trend2, use_container_width=True)
+
+        st.subheader("Raw Data")
+        st.dataframe(data.style.format(format_dict))
+        st.markdown('##')
+
+        with st.expander('Data set stats'):
+            buffer = io.StringIO()
+            data.info(buf=buffer)
+            s = buffer.getvalue()
+            st.text(s)
 
     else:
-
         with st.form("my_form"):
             client = st.text_input('Client organization name*', placeholder='eg. Air Canada', key='client', help='Required to build export file name.')
             period = st.text_input('Reporting period or focus*', placeholder='eg. March 2022', key='period', help='Required to build export file name.')
@@ -218,71 +272,22 @@ if page == "1: Getting Started":
                  st.error('Missing required form inputs above.')
 
             elif submitted:
-                data = pd.read_csv(uploaded_file)
-                data = data.dropna(thresh=2)
-                data["Mentions"] = 1
-                st.session_state.df_uncleaned = data
-                st.session_state.df_raw = data
-                st.session_state.upload_step = True
+                with st.spinner("Converting file format."):
+                    data = pd.read_csv(uploaded_file)
+                    data = data.dropna(thresh=2)
 
-                data['Audience Reach'] = data['Audience Reach'].astype('Int64')
-                data['AVE'] = data['AVE'].fillna(0)
-                st.session_state.export_name = f"{client} - {period} - clean_data.xlsx"
-                st.header('Exploratory Data Analysis')
-                col1, col2 = st.columns(2)
-                with col1:
-                    st.subheader("Basic Metrics")
-                    st.metric(label="Mentions", value="{:,}".format(len(data)))
-                    st.metric(label="Impressions", value="{:,}".format(data['Audience Reach'].sum()))
-                with col2:
-                    st.subheader("Media Type")
-                    st.write(data['Media Type'].value_counts())
+                    st.session_state.df_uncleaned = data
+                    data["Mentions"] = 1
 
-                col3, col4 = st.columns(2)
-                with col3:
-                    st.subheader("Top Authors")
-                    original_top_authors = (top_x_by_mentions(data, "Author"))
-                    st.write(original_top_authors)
-                    st.session_state.original_auths = original_top_authors
-                with col4:
-                    st.subheader("Top Outlets")
-                    original_top_outlets = (top_x_by_mentions(data, "Outlet"))
-                    st.write(original_top_outlets)
-                #
-                # source = data['Sentiment'].value_counts().reset_index()
-                # sentiment = alt.Chart(source).mark_arc().encode(
-                #     theta=alt.Theta(field="Sentiment", type="quantitative"),
-                #     color=alt.Color(field="index", type="nominal")
-                # )
-                #
-                # st.altair_chart(sentiment, use_container_width=True)
+                    st.session_state.df_raw = data
+                    st.session_state.upload_step = True
 
-                st.markdown('##')
-                st.subheader('Mention Trend')
+                    data['Audience Reach'] = data['Audience Reach'].astype('Int64')
+                    data['AVE'] = data['AVE'].fillna(0)
+                    st.session_state.export_name = f"{client} - {period} - clean_data.xlsx"
+                    st.session_state.df_raw = data
+                    st.experimental_rerun()
 
-                trend = alt.Chart(data).mark_line().encode(
-                    x='Published Date:T',
-                    y='count(Mentions):Q'
-                )
-                st.altair_chart(trend, use_container_width=True)
-
-                st.markdown('##')
-                st.subheader('Impressions Trend')
-                trend2 = alt.Chart(data).mark_line().encode(
-                    x='Published Date:T',
-                    y='sum(Audience Reach):Q'
-                )
-                st.altair_chart(trend2, use_container_width=True)
-
-                st.subheader("Raw Data")
-                st.dataframe(data.style.format(format_dict))
-                st.markdown('##')
-
-                with st.expander('Data set stats'):
-                    buffer = io.StringIO()
-                    data.info(buf=buffer)
-                    s = buffer.getvalue()
-                    st.text(s)
 
 elif page == "2: Standard Cleaning":
     st.title('Standard Cleaning')
@@ -328,166 +333,162 @@ elif page == "2: Standard Cleaning":
             #     # greater than the start date and smaller than the end date
             #     mask = (data['Date'] >= start_date) & (data['Date'] <= end_date)
             #     data = data.loc[mask]
-                data = data.rename(columns={
-                    'Published Date': 'Date',
-                    'Published Time': 'Time',
-                    'Media Type': 'Type',
-                    'Coverage Snippet': 'Snippet',
-                    'Province/State': 'Prov/State',
-                    'Audience Reach': 'Impressions'})
-                col1, col2, col3 = st.columns(3)
-                with col1:
-                    st.write('✓ Columns Renamed')
+                with st.spinner("Running standard cleaning."):
 
-                data.Type.replace({"ONLINE_NEWS": "ONLINE NEWS", "PRESS_RELEASE": "PRESS RELEASE"}, inplace=True)
-                data.loc[data['URL'].str.contains("www.facebook.com", na=False), 'Type'] = "FACEBOOK"
-                data.loc[data['URL'].str.contains("/twitter.com", na=False), 'Type'] = "TWITTER"
-                data.loc[data['URL'].str.contains("www.instagram.com", na=False), 'Type'] = "INSTAGRAM"
-                data.loc[data['URL'].str.contains("reddit.com", na=False), 'Type'] = "REDDIT"
-                data.loc[data['URL'].str.contains("youtube.com", na=False), 'Type'] = "YOUTUBE"
-                with col2:
-                    st.write('✓ Media Types Cleaned')
+                    data = data.rename(columns={
+                        'Published Date': 'Date',
+                        'Published Time': 'Time',
+                        'Media Type': 'Type',
+                        'Coverage Snippet': 'Snippet',
+                        'Province/State': 'Prov/State',
+                        'Audience Reach': 'Impressions'})
+                    col1, col2, col3 = st.columns(3)
+                    with col1:
+                        st.write('✓ Columns Renamed')
 
-                if "Original URL" in data:
-                    data.loc[data["Original URL"].notnull(), "URL"] = data["Original URL"]
-                    with col3:
-                        st.write('✓ Original URLs Merged')
-
-                data.drop(["Timezone",
-                           "Word Count",
-                           "Duration",
-                           "Original URL",
-                           "Image URLs",
-                           "Folders",
-                           "Notes",
-                           "County",
-                           "isAudienceFromPartnerUniqueVisitor"],
-                          axis=1, inplace=True, errors='ignore')
-                with col1:
-                    st.write('✓ Junk Columns Dropped')
-
-                # Move columns
-                temp = data.pop('Impressions')
-                data.insert(5, 'Impressions', temp)
-                # data.Impressions = data.Impressions.astype('Int64')
-                temp = data.pop('Mentions')
-                data.insert(5, 'Mentions', temp)
-                with col2:
-                    st.write('✓ Columns Sorted')
-
-                # Strip extra white space
-                data['Headline'] = data['Headline'].astype(str)
-                data['Headline'].str.strip()
-                data['Outlet'].str.strip()
-                data['Author'].str.strip()
-                data['Headline'] = data['Headline'].str.replace('   ', ' ')
-                data['Outlet'] = data['Outlet'].str.replace('   ', ' ')
-                data['Author'] = data['Author'].str.replace('   ', ' ')
-                data['Headline'] = data['Headline'].str.replace('  ', ' ')
-                data['Outlet'] = data['Outlet'].str.replace('  ', ' ')
-                data['Author'] = data['Author'].str.replace('  ', ' ')
-                with col3:
-                    st.write('✓ Extra Spaces Removed')
-
-                # Remove (Online)
-                data['Outlet'] = data['Outlet'].str.replace(' \(Online\)', '')
-                with col1:
-                    st.write('✓ "(Online)" Removed')
-
-                # Tag exploder
-                if "Tags" in data:
-                    data['Tags'] = data['Tags'].astype(str)
-                    data = data.join(data["Tags"].str.get_dummies(sep=","))
+                    data.Type.replace({"ONLINE_NEWS": "ONLINE NEWS", "PRESS_RELEASE": "PRESS RELEASE"}, inplace=True)
+                    data.loc[data['URL'].str.contains("www.facebook.com", na=False), 'Type'] = "FACEBOOK"
+                    data.loc[data['URL'].str.contains("/twitter.com", na=False), 'Type'] = "TWITTER"
+                    data.loc[data['URL'].str.contains("www.instagram.com", na=False), 'Type'] = "INSTAGRAM"
+                    data.loc[data['URL'].str.contains("reddit.com", na=False), 'Type'] = "REDDIT"
+                    data.loc[data['URL'].str.contains("youtube.com", na=False), 'Type'] = "YOUTUBE"
                     with col2:
-                        st.write('✓ Tags Expanded')
+                        st.write('✓ Media Types Cleaned')
 
-                # SOCIALS To sep df
-                soc_array = ['FACEBOOK', 'TWITTER', 'INSTAGRAM', 'REDDIT', 'YOUTUBE']
-                social = data.loc[data['Type'].isin(soc_array)]
-                data = data[~data['Type'].isin(soc_array)]
+                    if "Original URL" in data:
+                        data.loc[data["Original URL"].notnull(), "URL"] = data["Original URL"]
+                        with col3:
+                            st.write('✓ Original URLs Merged')
 
-                with col3:
-                    st.write('✓ Social Split Out')
+                    data.drop(["Timezone",
+                               "Word Count",
+                               "Duration",
+                               "Original URL",
+                               "Image URLs",
+                               "Folders",
+                               "Notes",
+                               "County",
+                               "isAudienceFromPartnerUniqueVisitor"],
+                              axis=1, inplace=True, errors='ignore')
+                    with col1:
+                        st.write('✓ Junk Columns Dropped')
 
-                # AP Cap
-                broadcast_array = ['RADIO', 'TV']
-                broadcast = data.loc[data['Type'].isin(broadcast_array)]
-                data = data[~data['Type'].isin(broadcast_array)]
+                    # Move columns
+                    temp = data.pop('Impressions')
+                    data.insert(5, 'Impressions', temp)
+                    # data.Impressions = data.Impressions.astype('Int64')
+                    temp = data.pop('Mentions')
+                    data.insert(5, 'Mentions', temp)
+                    with col2:
+                        st.write('✓ Columns Sorted')
 
-                data[['Headline']] = data[['Headline']].fillna('')
-                data['Headline'] = data['Headline'].map(lambda Headline: titlecase(Headline))
-                # frames = [data, broadcast]
-                # data = pd.concat(frames)
-                with col1:
-                    st.write('✓ AP Style Capitalization')
+                    # Strip extra white space
+                    data['Headline'] = data['Headline'].astype(str)
+                    data['Headline'].str.strip()
+                    data['Outlet'].str.strip()
+                    data['Author'].str.strip()
+                    data['Headline'] = data['Headline'].str.replace('   ', ' ')
+                    data['Outlet'] = data['Outlet'].str.replace('   ', ' ')
+                    data['Author'] = data['Author'].str.replace('   ', ' ')
+                    data['Headline'] = data['Headline'].str.replace('  ', ' ')
+                    data['Outlet'] = data['Outlet'].str.replace('  ', ' ')
+                    data['Author'] = data['Author'].str.replace('  ', ' ')
+                    with col3:
+                        st.write('✓ Extra Spaces Removed')
 
-                # Yahoo standardizer
-                yahoo_cleanup('sports.yahoo.com')
-                yahoo_cleanup('www.yahoo.com')
-                yahoo_cleanup('news.yahoo.com')
-                yahoo_cleanup('style.yahoo.com')
-                yahoo_cleanup('finance.yahoo.com')
-                with col2:
-                    st.write('✓ Yahoo Standardization')
+                    # Remove (Online)
+                    data['Outlet'] = data['Outlet'].str.replace(' \(Online\)', '')
+                    with col1:
+                        st.write('✓ "(Online)" Removed')
 
-                # Drop dupes by url - split out broadcast
-                # broadcast_array = ['RADIO', 'TV']
-                # broadcast = data.loc[data['Type'].isin(broadcast_array)]
-                # data = data[~data['Type'].isin(broadcast_array)]
+                    # Tag exploder
+                    if "Tags" in data:
+                        data['Tags'] = data['Tags'].astype(str) # needed if column there but all blank
+                        data = data.join(data["Tags"].str.get_dummies(sep=","))
+                        with col2:
+                            st.write('✓ Tags Expanded')
 
-                # Add temporary dupe URL helper column
-                data['URL Helper'] = data['URL'].str.lower()
-                data['URL Helper'] = data['URL Helper'].str.replace('http:', 'https:')
+                    # SOCIALS To sep df
+                    soc_array = ['FACEBOOK', 'TWITTER', 'INSTAGRAM', 'REDDIT', 'YOUTUBE']
+                    social = data.loc[data['Type'].isin(soc_array)]
+                    data = data[~data['Type'].isin(soc_array)]
 
-                # Save duplicate URLS
-                dupe_urls = data[data['URL Helper'].duplicated(keep='first') == True]
-                dupe_urls = dupe_urls.dropna(subset=["URL Helper"])
+                    with col3:
+                        st.write('✓ Social Split Out')
 
-                # Drop duplicate URLs
-                data = data[~data.index.isin(dupe_urls)].dropna(how="all")
+                    # AP Cap
+                    broadcast_array = ['RADIO', 'TV']
+                    broadcast = data.loc[data['Type'].isin(broadcast_array)]
+                    data = data[~data['Type'].isin(broadcast_array)]
 
-                # Drop URL Helper column from both dfs
-                data.drop(["URL Helper"], axis=1, inplace=True, errors='ignore')
-                dupe_urls.drop(["URL Helper"], axis=1, inplace=True, errors='ignore')
+                    data[['Headline']] = data[['Headline']].fillna('')
+                    data['Headline'] = data['Headline'].map(lambda Headline: titlecase(Headline))
+                    # frames = [data, broadcast]
+                    # data = pd.concat(frames)
+                    with col1:
+                        st.write('✓ AP Style Capitalization')
 
-                # SAVE duplicates based on TYPE + OUTLET + HEADLINE
-                data["dupe_helper"] = data['Type'] + data['Outlet'] + data['Headline']
-                dupe_cols = data[data['dupe_helper'].duplicated(keep='first') == True]
-                dupe_cols = dupe_cols.dropna(subset=["dupe_helper"])
-                dupe_cols = dupe_cols.dropna(subset=["Type"])
-                dupe_cols = dupe_cols.dropna(subset=["Outlet"])
-                dupe_cols = dupe_cols.dropna(subset=["Headline"])
+                    # Yahoo standardizer
+                    yahoo_cleanup('sports.yahoo.com')
+                    yahoo_cleanup('www.yahoo.com')
+                    yahoo_cleanup('news.yahoo.com')
+                    yahoo_cleanup('style.yahoo.com')
+                    yahoo_cleanup('finance.yahoo.com')
+                    with col2:
+                        st.write('✓ Yahoo Standardization')
 
-                # Drop duplicates based on TYPE + OUTLET + HEADLINE
-                data = data[~data.index.isin(dupe_cols)].dropna(how="all")
+                    # Add temporary dupe URL helper column
+                    data['URL_Helper'] = data['URL'].str.lower()
+                    data['URL_Helper'] = data['URL_Helper'].str.replace('http:', 'https:')
 
-                # Drop helper column and rejoin broadcast
-                data.drop(["dupe_helper"], axis=1, inplace=True, errors='ignore')
-                dupe_cols.drop(["dupe_helper"], axis=1, inplace=True, errors='ignore')
-                frames = [data, broadcast]
-                traditional = pd.concat(frames)
-                dupes = pd.concat([dupe_urls, dupe_cols])
+                    # Save duplicate URLS
+                    dupe_urls = data[data['URL_Helper'].duplicated(keep='first') == True]
+                    dupe_urls = dupe_urls.dropna(subset=["URL_Helper"])
 
-                with col3:
-                    st.write('✓ Duplicates Removed')
+                    # Drop duplicate URLs
+                    data = data.dropna(subset=['URL']).drop_duplicates(subset="URL_Helper")
 
-                if len(traditional) > 0:
-                    with st.expander("Traditional"):
-                        st.dataframe(traditional.style.format(format_dict))
-                if len(social) > 0:
-                    with st.expander("Social"):
-                        st.dataframe(social.style.format(format_dict))
-                if len(dupes) > 0:
-                    with st.expander("Deleted Duplicates"):
-                        st.dataframe(dupes)
+                    # Drop URL Helper column from both dfs
+                    data.drop(["URL_Helper"], axis=1, inplace=True, errors='ignore')
+                    dupe_urls.drop(["URL_Helper"], axis=1, inplace=True, errors='ignore')
 
-                original_trad_auths = top_x_by_mentions(traditional, "Author")
-                st.session_state.original_trad_auths = original_trad_auths
-                st.session_state.df_traditional = traditional
-                st.session_state.df_social = social
-                st.session_state.df_dupes = dupes
-                st.session_state.standard_step = True
+                    # SAVE duplicates based on TYPE + OUTLET + HEADLINE
+                    data["dupe_helper"] = data['Type'] + data['Outlet'] + data['Headline']
+                    dupe_cols = data[data['dupe_helper'].duplicated(keep='first') == True]
+                    dupe_cols = dupe_cols.dropna(subset=["dupe_helper"])
+                    dupe_cols = dupe_cols.dropna(subset=["Type"])
+                    dupe_cols = dupe_cols.dropna(subset=["Outlet"])
+                    dupe_cols = dupe_cols.dropna(subset=["Headline"])
 
+                    # Drop duplicates based on TYPE + OUTLET + HEADLINE
+                    data = data.dropna(subset=['Headline', 'Outlet', 'Type']).drop_duplicates(subset="dupe_helper")
+
+                    # Drop helper column and rejoin broadcast
+                    data.drop(["dupe_helper"], axis=1, inplace=True, errors='ignore')
+                    dupe_cols.drop(["dupe_helper"], axis=1, inplace=True, errors='ignore')
+                    frames = [data, broadcast]
+                    traditional = pd.concat(frames)
+                    dupes = pd.concat([dupe_urls, dupe_cols])
+
+                    with col3:
+                        st.write('✓ Duplicates Removed')
+
+                    if len(traditional) > 0:
+                        with st.expander("Traditional"):
+                            st.dataframe(traditional.style.format(format_dict))
+                    if len(social) > 0:
+                        with st.expander("Social"):
+                            st.dataframe(social.style.format(format_dict))
+                    if len(dupes) > 0:
+                        with st.expander("Deleted Duplicates"):
+                            st.dataframe(dupes.style.format(format_dict))
+
+                    original_trad_auths = top_x_by_mentions(traditional, "Author")
+                    st.session_state.original_trad_auths = original_trad_auths
+                    st.session_state.df_traditional = traditional
+                    st.session_state.df_social = social
+                    st.session_state.df_dupes = dupes
+                    st.session_state.standard_step = True
 
 elif page == "3: Impressions - Outliers":
     traditional = st.session_state.df_traditional
@@ -518,10 +519,6 @@ elif page == "3: Impressions - Outliers":
                 st.session_state.outliers = True
                 st.experimental_rerun()
 
-        if st.session_state.outliers == False:
-            done_outliers = st.button('Done with outliers')
-            if done_outliers:
-                st.session_state.outliers = True
 
 elif page == "4: Impressions - Fill Blanks":
     st.title('Impressions - Fill Blanks')
@@ -661,7 +658,6 @@ elif page == "5: Authors":
             st.markdown(hide_table_row_index, unsafe_allow_html=True)
 
             st.table(headline_table.iloc[[counter]])
-            # st.write("**Possible Authors**")
             st.table(headline_authors(traditional, headline_text).rename(columns={'index': 'Possible Author(s)',
                                                                                   'Author': 'Matches'}))
 
@@ -696,12 +692,12 @@ elif page == "5: Authors":
 
         with col1:
             st.subheader("Original Top Authors")
-            st.write(original_trad_auths)
+            st.table(original_trad_auths)
 
 
         with col2:
             st.subheader("New Top Authors")
-            st.write(top_x_by_mentions(traditional, "Author"))
+            st.table(top_x_by_mentions(traditional, "Author"))
 
         st.subheader("Fixable Author Stats")
         stats = (fixable_headline_stats(traditional, primary="Headline", secondary="Author"))
@@ -794,7 +790,7 @@ elif page == "6: Translation":
                 st.session_state.df_social = social
                 st.experimental_rerun()
 
-# basic metrics + charts
+
 elif page == "7: Review":
     st.title('Review')
     if st.session_state.upload_step == False:
@@ -813,7 +809,6 @@ elif page == "7: Review":
                     st.subheader("Basic Metrics")
                     st.metric(label="Mentions", value="{:,}".format(len(traditional)))
                     st.metric(label="Impressions", value="{:,}".format(traditional['Impressions'].sum()))
-                    # st.metric(label="AVE", value="{:,}".format(data['AVE'].sum()))
                 with col2:
                     st.subheader("Media Type")
                     st.write(traditional['Type'].value_counts())
@@ -822,12 +817,12 @@ elif page == "7: Review":
                 with col3:
                     st.subheader("Top Authors")
                     top_authors = (top_x_by_mentions(traditional, "Author"))
-                    st.write(top_authors)
+                    st.table(top_authors)
 
                 with col4:
                     st.subheader("Top Outlets")
                     top_outlets = (top_x_by_mentions(traditional, "Outlet"))
-                    st.write(top_outlets)
+                    st.table(top_outlets)
 
 
                 st.markdown('##')
@@ -903,7 +898,6 @@ elif page == "7: Review":
                     st.subheader("Basic Metrics")
                     st.metric(label="Mentions", value="{:,}".format(len(dupes)))
                     st.metric(label="Impressions", value="{:,}".format(dupes['Impressions'].sum()))
-                    # st.metric(label="AVE", value="{:,}".format(data['AVE'].sum()))
                 with col2:
                     st.subheader("Media Type")
                     st.write(dupes['Type'].value_counts())
@@ -984,8 +978,6 @@ elif page == "8: Download":
                         sheet.set_column('H:H', 40, None)  # headline
                         sheet.set_column('R:R', 12, currency_format)  # AVE
                         sheet.freeze_panes(1, 0)
-
-                    # Close the Pandas Excel writer and output the Excel file.
                     writer.save()
 
         if submitted:
