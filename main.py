@@ -692,12 +692,12 @@ elif page == "5: Authors":
 
         with col1:
             st.subheader("Original Top Authors")
-            st.table(original_trad_auths)
+            st.dataframe(original_trad_auths)
 
 
         with col2:
             st.subheader("New Top Authors")
-            st.table(top_x_by_mentions(traditional, "Author"))
+            st.dataframe(top_x_by_mentions(traditional, "Author"))
 
         st.subheader("Fixable Author Stats")
         stats = (fixable_headline_stats(traditional, primary="Headline", secondary="Author"))
