@@ -389,12 +389,6 @@ elif page == "2: Standard Cleaning":
                     col1, col2, col3 = st.columns(3)
                     with col1:
                         st.write('✓ Columns Renamed')
-
-                    if merge_online:
-                        data.Type.replace({
-                            "ONLINE NEWS": "ONLINE",
-                            "PRESS RELEASE": "ONLINE",
-                            "BLOGS": "ONLINE"}, inplace=True)
                         
                     data.Type.replace({"ONLINE_NEWS": "ONLINE NEWS", "PRESS_RELEASE": "PRESS RELEASE"}, inplace=True)
                     data.loc[data['URL'].str.contains("www.facebook.com", na=False), 'Type'] = "FACEBOOK"
@@ -402,6 +396,13 @@ elif page == "2: Standard Cleaning":
                     data.loc[data['URL'].str.contains("www.instagram.com", na=False), 'Type'] = "INSTAGRAM"
                     data.loc[data['URL'].str.contains("reddit.com", na=False), 'Type'] = "REDDIT"
                     data.loc[data['URL'].str.contains("youtube.com", na=False), 'Type'] = "YOUTUBE"
+                        
+                    if merge_online:
+                        data.Type.replace({
+                            "ONLINE NEWS": "ONLINE",
+                            "PRESS RELEASE": "ONLINE",
+                            "BLOGS": "ONLINE"}, inplace=True)
+                        
                     with col2:
                         st.write('✓ Media Types Cleaned')
 
