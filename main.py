@@ -773,8 +773,8 @@ elif page == "6: Translation":
         st.error('Please run the Standard Cleaning before trying this step.')
     elif st.session_state.translated_headline == True and st.session_state.translated_snippet == True and st.session_state.translated_summary == True:
         st.subheader("✓ Translation complete.")
-        trad_non_eng = traditional[traditional['Language'] != 'English']
-        soc_non_eng = social[social['Language'] != 'English']
+        trad_non_eng = len(traditional[traditional['Language'] != 'English'])                         
+        soc_non_eng = len(social[social['Language'] != 'English'])
         
         if trad_non_eng > 0:
             with st.expander("Traditional - Non-English"):
