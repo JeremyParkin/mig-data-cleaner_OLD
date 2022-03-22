@@ -8,6 +8,9 @@ from deep_translator import GoogleTranslator
 from titlecase import titlecase
 import warnings
 import altair as alt
+from concurrent.futures import ThreadPoolExecutor
+from threading import Thread
+
 warnings.filterwarnings('ignore')
 
 st.set_page_config(layout="wide", page_title="MIG Data Cleaning App", page_icon="https://www.agilitypr.com/wp-content/uploads/2018/02/favicon-192.png")
@@ -36,6 +39,28 @@ def top_x_by_mentions(df, column_name):
   x_table = x_table.sort_values("Mentions", ascending=False)
   x_table = x_table.rename(columns={"Mentions": "Hits"})
   return x_table.head(10)
+
+
+def fixable_impressions_list(df):
+    """WIP - Returns item from most fixable imp list"""
+    imp_table = pd.pivot_table(df, index="Outlet", values=["Mentions", "Impressions"], aggfunc="count")
+    imp_table["Missing"] = imp_table["Mentions"] - imp_table["Impressions"]
+    imp_table = imp_table[imp_table["Impressions"] > 0]
+    imp_table = imp_table[imp_table['Missing'] > 0]
+    imp_table = imp_table.sort_values("Missing", ascending=False)
+    imp_table = imp_table.reset_index()
+    return imp_table
+
+
+def fix_imp(df, outlet, new_impressions_value):
+    """Updates all impressions for a given outlet"""
+    df.loc[df["Outlet"] == outlet, "Impressions"] = new_impressions_value
+
+
+def outlet_imp(df, outlet):
+    """Returns the various authors for a given headline"""
+    outlet_imps = (df[df.Outlet == outlet].Impressions.value_counts().reset_index())
+    return outlet_imps
 
 
 def fix_author(df, headline_text, new_author):
@@ -104,36 +129,36 @@ def author_matcher(counter):
     st.experimental_rerun()
 
 
-def translate_col(df, name_of_column):
-    """Replaces non-English string in column with English"""
-    unique_non_eng = list(set(df[name_of_column][df['Language'] != 'English'].dropna()))
-    if '' in unique_non_eng:
-        unique_non_eng.remove('')
-    unique_non_eng_clipped = []
-    with st.spinner('Running translation now...'):
-        for text in unique_non_eng:
-            unique_non_eng_clipped.append(text[:1500])
-        translated_x = []
-        for text in unique_non_eng_clipped:
-            translated_x.append(GoogleTranslator(source='auto', target='en').translate(text))
-            dictionary = dict(zip(unique_non_eng, translated_x))
-            df[name_of_column].replace(dictionary, inplace = True)
-
 # def translate_col(df, name_of_column):
 #     """Replaces non-English string in column with English"""
-#     global dictionary
-#     dictionary = {}
 #     unique_non_eng = list(set(df[name_of_column][df['Language'] != 'English'].dropna()))
 #     if '' in unique_non_eng:
 #         unique_non_eng.remove('')
+#     unique_non_eng_clipped = []
 #     with st.spinner('Running translation now...'):
-#         with ThreadPoolExecutor(max_workers=30) as ex:
-#             results = ex.map(translate, [text for text in unique_non_eng])
-#     df[name_of_column].replace(dictionary, inplace=True)
+#         for text in unique_non_eng:
+#             unique_non_eng_clipped.append(text[:1500])
+#         translated_x = []
+#         for text in unique_non_eng_clipped:
+#             translated_x.append(GoogleTranslator(source='auto', target='en').translate(text))
+#             dictionary = dict(zip(unique_non_eng, translated_x))
+#             df[name_of_column].replace(dictionary, inplace = True)
+
+def translate_col(df, name_of_column):
+    """Replaces non-English string in column with English"""
+    global dictionary
+    dictionary = {}
+    unique_non_eng = list(set(df[name_of_column][df['Language'] != 'English'].dropna()))
+    if '' in unique_non_eng:
+        unique_non_eng.remove('')
+    with st.spinner('Running translation now...'):
+        with ThreadPoolExecutor(max_workers=30) as ex:
+            results = ex.map(translate, [text for text in unique_non_eng])
+    df[name_of_column].replace(dictionary, inplace=True)
         
         
-# def translate(text):
-#     dictionary[text] = (GoogleTranslator(source='auto', target='en').translate(text[:1500]))
+def translate(text):
+    dictionary[text] = (GoogleTranslator(source='auto', target='en').translate(text[:1500]))
         
 
 def translation_stats_combo():
@@ -144,7 +169,7 @@ def translation_stats_combo():
     else:
         min_word = 'minutes'
     st.write(f"There are {non_english_records} non-English records in your data.")
-    st.write(f"\nAllow around {minutes}-{minutes + 1} {min_word} per column for translation.")
+#     st.write(f"\nAllow around {minutes}-{minutes + 1} {min_word} per column for translation.")
 
 format_dict = {'AVE':'${0:,.0f}', 'Audience Reach': '{:,d}', 'Impressions': '{:,d}'}
 
@@ -208,7 +233,7 @@ st.sidebar.markdown("")
 st.sidebar.markdown("")
 st.sidebar.markdown("")
 st.sidebar.markdown("")
-st.sidebar.caption("v.1.5.1.3")
+st.sidebar.caption("v.1.5.1.4")
 
 if page == "1: Getting Started":
     st.title('Getting Started')
@@ -344,6 +369,9 @@ elif page == "2: Standard Cleaning":
             # # date_range = st.date_input('Date Range', value=[min_date, max_date], min_value=min_date, max_value=max_date)
             # start_date = st.date_input('Start Date', value=min_date, min_value=min_date, max_value=max_date)
             # end_date = st.date_input('End Date', value=max_date, min_value=min_date, max_value=max_date)
+            st.subheader("Cleaning options")
+            merge_online = st.checkbox("Merge 'blogs' and 'press releases' into 'Online'")
+            fill_known_imp = st.checkbox("Fill missing impressions values where known match exists in data")
             submitted = st.form_submit_button("Go!")
             if submitted:
             #     # greater than the start date and smaller than the end date
@@ -362,6 +390,12 @@ elif page == "2: Standard Cleaning":
                     with col1:
                         st.write('✓ Columns Renamed')
 
+                    if merge_online:
+                        data.Type.replace({
+                            "ONLINE NEWS": "ONLINE",
+                            "PRESS RELEASE": "ONLINE",
+                            "BLOGS": "ONLINE"}, inplace=True)
+                        
                     data.Type.replace({"ONLINE_NEWS": "ONLINE NEWS", "PRESS_RELEASE": "PRESS RELEASE"}, inplace=True)
                     data.loc[data['URL'].str.contains("www.facebook.com", na=False), 'Type'] = "FACEBOOK"
                     data.loc[data['URL'].str.contains("/twitter.com", na=False), 'Type'] = "TWITTER"
@@ -432,6 +466,14 @@ elif page == "2: Standard Cleaning":
                     with col3:
                         st.write('✓ Social Split Out')
 
+                    # Fill known impressions
+                    if fill_known_imp:
+                        imp_fix_table = fixable_impressions_list(data)
+                        for outlet in imp_fix_table.Outlet:
+                            if len(outlet_imp(data, outlet)) == 1:
+                                fix_imp(data, outlet, int(outlet_imp(data, outlet)['index']))
+                                
+                    
                     # AP Cap
                     broadcast_array = ['RADIO', 'TV']
                     broadcast = data.loc[data['Type'].isin(broadcast_array)]
@@ -730,6 +772,14 @@ elif page == "6: Translation":
         st.error('Please run the Standard Cleaning before trying this step.')
     elif st.session_state.translated_headline == True and st.session_state.translated_snippet == True and st.session_state.translated_summary == True:
         st.subheader("✓ Translation complete.")
+        if len(traditional) > 0:
+            with st.expander("Traditional - Non-English"):
+                st.dataframe(traditional[traditional['Language'] != 'English'][['Outlet', 'Headline','Snippet','Summary','Language','Country']])
+
+        if len(social) > 0:
+            with st.expander("Social - Non-English"):
+                st.dataframe(social[social['Language'] != 'English'][
+                                 ['Outlet', 'Snippet', 'Summary', 'Language', 'Country']])
     elif len(traditional[traditional['Language'] != 'English']) == 0 and len(social[social['Language'] != 'English']) == 0:
         st.subheader("No translation required")
     else:
