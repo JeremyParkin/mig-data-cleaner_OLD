@@ -208,7 +208,7 @@ st.sidebar.markdown("")
 st.sidebar.markdown("")
 st.sidebar.markdown("")
 st.sidebar.markdown("")
-st.sidebar.caption("v.1.5.1.3")
+st.sidebar.caption("v.1.5.1.4")
 
 if page == "1: Getting Started":
     st.title('Getting Started')
