@@ -104,21 +104,37 @@ def author_matcher(counter):
     st.experimental_rerun()
 
 
+# def translate_col(df, name_of_column):
+#     """Replaces non-English string in column with English"""
+#     unique_non_eng = list(set(df[name_of_column][df['Language'] != 'English'].dropna()))
+#     if '' in unique_non_eng:
+#         unique_non_eng.remove('')
+#     unique_non_eng_clipped = []
+#     with st.spinner('Running translation now...'):
+#         for text in unique_non_eng:
+#             unique_non_eng_clipped.append(text[:1500])
+#         translated_x = []
+#         for text in unique_non_eng_clipped:
+#             translated_x.append(GoogleTranslator(source='auto', target='en').translate(text))
+#             dictionary = dict(zip(unique_non_eng, translated_x))
+#             df[name_of_column].replace(dictionary, inplace = True)
+
 def translate_col(df, name_of_column):
     """Replaces non-English string in column with English"""
+    global dictionary
+    dictionary = {}
     unique_non_eng = list(set(df[name_of_column][df['Language'] != 'English'].dropna()))
     if '' in unique_non_eng:
         unique_non_eng.remove('')
-    unique_non_eng_clipped = []
     with st.spinner('Running translation now...'):
-        for text in unique_non_eng:
-            unique_non_eng_clipped.append(text[:1500])
-        translated_x = []
-        for text in unique_non_eng_clipped:
-            translated_x.append(GoogleTranslator(source='auto', target='en').translate(text))
-            dictionary = dict(zip(unique_non_eng, translated_x))
-            df[name_of_column].replace(dictionary, inplace = True)
-
+        with ThreadPoolExecutor(max_workers=30) as ex:
+            results = ex.map(translate, [text for text in unique_non_eng])
+    df[name_of_column].replace(dictionary, inplace=True)
+        
+        
+def translate(text):
+    dictionary[text] = (GoogleTranslator(source='auto', target='en').translate(text[:1500]))
+        
 
 def translation_stats_combo():
     non_english_records = len(traditional[traditional['Language'] != 'English']) + len(social[social['Language'] != 'English'])
