@@ -496,6 +496,10 @@ elif page == "2: Standard Cleaning":
                     with col2:
                         st.write('✓ Yahoo Standardization')
 
+                    # Set aside blank URLs
+                    blank_urls = data[data.URL.isna()]
+                    data = data[~data.URL.isna()]
+                
                     # Add temporary dupe URL helper column
                     data['URL_Helper'] = data['URL'].str.lower()
                     data['URL_Helper'] = data['URL_Helper'].str.replace('http:', 'https:')
@@ -512,6 +516,9 @@ elif page == "2: Standard Cleaning":
                     # Drop URL Helper column from both dfs
                     data.drop(["URL_Helper"], axis=1, inplace=True, errors='ignore')
                     dupe_urls.drop(["URL_Helper"], axis=1, inplace=True, errors='ignore')
+                
+                    frames = [data, blank_urls]
+                    data = pd.concat(frames)
                 
                     ### Dupe column cleaning ###
                     
