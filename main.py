@@ -129,21 +129,6 @@ def author_matcher(counter):
     st.experimental_rerun()
 
 
-# def translate_col(df, name_of_column):
-#     """Replaces non-English string in column with English"""
-#     unique_non_eng = list(set(df[name_of_column][df['Language'] != 'English'].dropna()))
-#     if '' in unique_non_eng:
-#         unique_non_eng.remove('')
-#     unique_non_eng_clipped = []
-#     with st.spinner('Running translation now...'):
-#         for text in unique_non_eng:
-#             unique_non_eng_clipped.append(text[:1500])
-#         translated_x = []
-#         for text in unique_non_eng_clipped:
-#             translated_x.append(GoogleTranslator(source='auto', target='en').translate(text))
-#             dictionary = dict(zip(unique_non_eng, translated_x))
-#             df[name_of_column].replace(dictionary, inplace = True)
-
 def translate_col(df, name_of_column):
     """Replaces non-English string in column with English"""
     global dictionary
@@ -169,7 +154,7 @@ def translation_stats_combo():
     else:
         min_word = 'minutes'
     st.write(f"There are {non_english_records} non-English records in your data.")
-#     st.write(f"\nAllow around {minutes}-{minutes + 1} {min_word} per column for translation.")
+
 
 format_dict = {'AVE':'${0:,.0f}', 'Audience Reach': '{:,d}', 'Impressions': '{:,d}'}
 
@@ -233,7 +218,7 @@ st.sidebar.markdown("")
 st.sidebar.markdown("")
 st.sidebar.markdown("")
 st.sidebar.markdown("")
-st.sidebar.caption("v.1.5.1.4")
+st.sidebar.caption("v.1.5.1.5")
 
 if page == "1: Getting Started":
     st.title('Getting Started')
@@ -265,14 +250,7 @@ if page == "1: Getting Started":
             st.subheader("Top Outlets")
             original_top_outlets = (top_x_by_mentions(data, "Outlet"))
             st.write(original_top_outlets)
-        #
-        # source = data['Sentiment'].value_counts().reset_index()
-        # sentiment = alt.Chart(source).mark_arc().encode(
-        #     theta=alt.Theta(field="Sentiment", type="quantitative"),
-        #     color=alt.Color(field="index", type="nominal")
-        # )
-        #
-        # st.altair_chart(sentiment, use_container_width=True)
+
 
         st.markdown('##')
         st.subheader('Mention Trend')
@@ -350,33 +328,13 @@ elif page == "2: Standard Cleaning":
                 st.dataframe(dupes.style.format(format_dict))
     else:
         data = st.session_state.df_raw
-        # data['Published Date'] = pd.to_datetime(data['Published Date'])
-        # data = data.rename(columns={
-        #     'Published Date': 'Date'})
-        # min_date = (data.Date.min().date())
-        # max_date = (data.Date.max().date())
-        # # st.write(min_date)
-        # # st.write(max_date)
-        # st.write(min_date).floor('D')
-        #
-        # date_range = st.date_input('Date Range', value=[min_date, max_date], min_value=min_date, max_value=max_date)
-        # #
-        # st.write(type(min_date))
-        # st.write(type(data.Date[4]))
 
         with st.form("my_form_basic_cleaning"):
-            # st.subheader("Adjust the Date Range")
-            # # date_range = st.date_input('Date Range', value=[min_date, max_date], min_value=min_date, max_value=max_date)
-            # start_date = st.date_input('Start Date', value=min_date, min_value=min_date, max_value=max_date)
-            # end_date = st.date_input('End Date', value=max_date, min_value=min_date, max_value=max_date)
             st.subheader("Cleaning options")
             merge_online = st.checkbox("Merge 'blogs' and 'press releases' into 'Online'")
             fill_known_imp = st.checkbox("Fill missing impressions values where known match exists in data")
             submitted = st.form_submit_button("Go!")
             if submitted:
-            #     # greater than the start date and smaller than the end date
-            #     mask = (data['Date'] >= start_date) & (data['Date'] <= end_date)
-            #     data = data.loc[mask]
                 with st.spinner("Running standard cleaning."):
 
                     data = data.rename(columns={
@@ -496,36 +454,48 @@ elif page == "2: Standard Cleaning":
                     with col2:
                         st.write('✓ Yahoo Standardization')
 
+                    # Set aside blank URLs
+                    blank_urls = data[data.URL.isna()]
+                    data = data[~data.URL.isna()]
+                
                     # Add temporary dupe URL helper column
                     data['URL_Helper'] = data['URL'].str.lower()
                     data['URL_Helper'] = data['URL_Helper'].str.replace('http:', 'https:')
 
+                    # Sort duplicate URLS
+                    data = data.sort_values(["URL_Helper", "Author", "Impressions", "AVE"], axis=0,
+                                            ascending=[True, True, False, False])
                     # Save duplicate URLS
                     dupe_urls = data[data['URL_Helper'].duplicated(keep='first') == True]
-                    dupe_urls = dupe_urls.dropna(subset=["URL_Helper"])
-
-                    # Drop duplicate URLs
-                    data = data.dropna(subset=['URL']).drop_duplicates(subset="URL_Helper")
-
+                
+                    # Remove duplicate URLS
+                    data = data[~data['URL_Helper'].duplicated(keep='first') == True]
+               
                     # Drop URL Helper column from both dfs
                     data.drop(["URL_Helper"], axis=1, inplace=True, errors='ignore')
                     dupe_urls.drop(["URL_Helper"], axis=1, inplace=True, errors='ignore')
-
-                    # SAVE duplicates based on TYPE + OUTLET + HEADLINE
-                    data["dupe_helper"] = data['Type'] + data['Outlet'] + data['Headline']
+                
+                    frames = [data, blank_urls]
+                    data = pd.concat(frames)
+                
+                    ### Dupe column cleaning ###
+                    
+                    # Split off records with blank headline/outlet/type
+                    blank_set = data[data.Headline.isna() | data.Outlet.isna() | data.Type.isna()]
+                    data = data[~data.Headline.isna() | data.Outlet.isna() | data.Type.isna()]
+                    
+                    # Add helper column
+                    data["dupe_helper"] = data['Type'] + data['Outlet'] + data['Headline']  
+                    data = data.sort_values(["dupe_helper", "Author", "Impressions", "AVE"], axis=0,
+                                            ascending=[True, True, False, False])
                     dupe_cols = data[data['dupe_helper'].duplicated(keep='first') == True]
-                    dupe_cols = dupe_cols.dropna(subset=["dupe_helper"])
-                    dupe_cols = dupe_cols.dropna(subset=["Type"])
-                    dupe_cols = dupe_cols.dropna(subset=["Outlet"])
-                    dupe_cols = dupe_cols.dropna(subset=["Headline"])
+                    data = data[~data['dupe_helper'].duplicated(keep='first') == True]
 
-                    # Drop duplicates based on TYPE + OUTLET + HEADLINE
-                    data = data.dropna(subset=['Headline', 'Outlet', 'Type']).drop_duplicates(subset="dupe_helper")
 
                     # Drop helper column and rejoin broadcast
                     data.drop(["dupe_helper"], axis=1, inplace=True, errors='ignore')
                     dupe_cols.drop(["dupe_helper"], axis=1, inplace=True, errors='ignore')
-                    frames = [data, broadcast]
+                    frames = [data, broadcast, blank_set]
                     traditional = pd.concat(frames)
                     dupes = pd.concat([dupe_urls, dupe_cols])
 
@@ -927,17 +897,6 @@ elif page == "7: Review":
                 with col2:
                     st.subheader("Media Type")
                     st.write(social['Type'].value_counts())
-
-                # col3, col4 = st.columns(2)
-                # with col3:
-                #     st.subheader("Top Authors")
-                #     top_authors = (top_x_by_mentions(social, "Author"))
-                #     st.write(top_authors)
-                #
-                # with col4:
-                #     st.subheader("Top Outlets")
-                #     top_outlets = (top_x_by_mentions(social, "Outlet"))
-                #     st.write(top_outlets)
 
                 st.markdown('##')
                 st.subheader('Mention Trend')
