@@ -501,31 +501,48 @@ elif page == "2: Standard Cleaning":
                     data['URL_Helper'] = data['URL_Helper'].str.replace('http:', 'https:')
 
                     # Save duplicate URLS
+                    data = data.sort_values(["URL_Helper", "Author", "Impressions", "AVE"], axis=0,
+                                            ascending=[True, True, False, False])
                     dupe_urls = data[data['URL_Helper'].duplicated(keep='first') == True]
-                    dupe_urls = dupe_urls.dropna(subset=["URL_Helper"])
+                    data = data[~data['URL_Helper'].duplicated(keep='first') == True]
+                        
+                        
+                        
+                        
+#                     dupe_urls = data[data['URL_Helper'].duplicated(keep='first') == True]
+#                     dupe_urls = dupe_urls.dropna(subset=["URL_Helper"])
 
                     # Drop duplicate URLs
-                    data = data.dropna(subset=['URL']).drop_duplicates(subset="URL_Helper")
+#                     data = data.dropna(subset=['URL']).drop_duplicates(subset="URL_Helper")
 
                     # Drop URL Helper column from both dfs
                     data.drop(["URL_Helper"], axis=1, inplace=True, errors='ignore')
                     dupe_urls.drop(["URL_Helper"], axis=1, inplace=True, errors='ignore')
+                
+                    # Dupe column cleaning
+                    blank_set = data[data.Headline.isna() | data.Outlet.isna() | data.Type.isna()]
+                    data["dupe_helper"] = data['Type'] + data['Outlet'] + data['Headline']  # make the helper column
+                    data = data.sort_values(["dupe_helper", "Author", "Impressions", "AVE"], axis=0,
+                                            ascending=[True, True, False, False])
+                    dupe_cols = data[data['dupe_helper'].duplicated(keep='first') == True]
+                    data = data[~data['dupe_helper'].duplicated(keep='first') == True]
+                        
 
                     # SAVE duplicates based on TYPE + OUTLET + HEADLINE
-                    data["dupe_helper"] = data['Type'] + data['Outlet'] + data['Headline']
-                    dupe_cols = data[data['dupe_helper'].duplicated(keep='first') == True]
-                    dupe_cols = dupe_cols.dropna(subset=["dupe_helper"])
-                    dupe_cols = dupe_cols.dropna(subset=["Type"])
-                    dupe_cols = dupe_cols.dropna(subset=["Outlet"])
-                    dupe_cols = dupe_cols.dropna(subset=["Headline"])
+#                     data["dupe_helper"] = data['Type'] + data['Outlet'] + data['Headline']
+#                     dupe_cols = data[data['dupe_helper'].duplicated(keep='first') == True]
+#                     dupe_cols = dupe_cols.dropna(subset=["dupe_helper"])
+#                     dupe_cols = dupe_cols.dropna(subset=["Type"])
+#                     dupe_cols = dupe_cols.dropna(subset=["Outlet"])
+#                     dupe_cols = dupe_cols.dropna(subset=["Headline"])
 
                     # Drop duplicates based on TYPE + OUTLET + HEADLINE
-                    data = data.dropna(subset=['Headline', 'Outlet', 'Type']).drop_duplicates(subset="dupe_helper")
+#                     data = data.dropna(subset=['Headline', 'Outlet', 'Type']).drop_duplicates(subset="dupe_helper")
 
                     # Drop helper column and rejoin broadcast
                     data.drop(["dupe_helper"], axis=1, inplace=True, errors='ignore')
                     dupe_cols.drop(["dupe_helper"], axis=1, inplace=True, errors='ignore')
-                    frames = [data, broadcast]
+                    frames = [data, broadcast, blank_set]
                     traditional = pd.concat(frames)
                     dupes = pd.concat([dupe_urls, dupe_cols])
 
