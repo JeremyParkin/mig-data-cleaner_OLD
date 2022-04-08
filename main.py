@@ -10,6 +10,7 @@ import warnings
 import altair as alt
 from concurrent.futures import ThreadPoolExecutor
 from threading import Thread
+from unidecode import unidecode
 
 warnings.filterwarnings('ignore')
 
@@ -156,6 +157,31 @@ def translation_stats_combo():
     st.write(f"There are {non_english_records} non-English records in your data.")
 
 
+def fetch_outlet(author_name):
+  contact_url = "https://mediadatabase.agilitypr.com/api/v4/contacts/search"
+  headers = CaseInsensitiveDict()
+  headers["Content-Type"] = "text/json"
+  headers["Accept"] = "text/json"
+  headers["Authorization"] = "bearer THFlDu0SGHrhrmK_RR0Lg9F_gr8O2af7SXiTs1TcsvOICC7Cstr6Q3pP1Q_HdgUAdKIsOZr9cfA-myCQw088dzRHRxDnSzG0LXXcPeQCO_6RSRCyz4h1Y7mNgPgTt3cA-48jx2nxwRXe15tqPrElErbeE3ibRlhs_1S4UA4oO59Hn_w0LYdcbeaaWmmNJcm6F0vNKyjldA8pM7btCvPct4KB2TEYcy5lGW_cH6OAAtcqL4az69pT5MvZmh_dO4dT6mSpwGIjJpZvPBdHMsQdUB3t26b_gGel6t0Bmm5fTUYb3EBbYeX4m3UkdyjFxPDC_qVsswYP--WoypWe69BFT_WiwEKG0CYbTrvayreOxOFALzBqGoM-MXSUG8bTQxLcWsZDMnTJvlA8L432wFL5nw"
+  headers["client_id"] = "0ccaab57-56dc-4925-b6a7-414ff4c437a8"
+  headers["userclient_id"] = "2f320b20-c531-4007-abd2-314248c0c235"
+
+  data_a = '''
+  {  
+    "aliases": [  
+      "'''
+
+  data_b = '''"  
+    ]   
+  }
+  '''
+
+  data = data_a + author_name + data_b
+  contact_resp = requests.post(contact_url, headers=headers, data=data)
+
+  return contact_resp.json()
+
+
 format_dict = {'AVE':'${0:,.0f}', 'Audience Reach': '{:,d}', 'Impressions': '{:,d}'}
 
 if 'page' not in st.session_state:
@@ -194,6 +220,12 @@ if 'filled' not in st.session_state:
     st.session_state.filled = False
 if 'original_trad_auths' not in st.session_state:
     st.session_state.original_trad_auths = pd.DataFrame()
+if 'author_outlets' not in st.session_state:
+    st.session_state.author_outlets = None
+if'auth_counter' not in st.session_state:
+    st.session_state.auth_counter = 0
+if'auth_outlet_table' not in st.session_state:
+    st.session_state.auth_outlet_table = pd.DataFrame()
 
 
 # Sidebar and page selector
@@ -205,6 +237,7 @@ pagelist = [
     "3: Impressions - Outliers",
     "4: Impressions - Fill Blanks",
     "5: Authors",
+    "5.5: Author - Outlets",
     "6: Translation",
     "7: Review",
     "8: Download"]
@@ -218,7 +251,7 @@ st.sidebar.markdown("")
 st.sidebar.markdown("")
 st.sidebar.markdown("")
 st.sidebar.markdown("")
-st.sidebar.caption("v.1.5.1.5")
+st.sidebar.caption("v.1.5.1.6")
 
 if page == "1: Getting Started":
     st.title('Getting Started')
@@ -331,8 +364,8 @@ elif page == "2: Standard Cleaning":
 
         with st.form("my_form_basic_cleaning"):
             st.subheader("Cleaning options")
-            merge_online = st.checkbox("Merge 'blogs' and 'press releases' into 'Online'")
-            fill_known_imp = st.checkbox("Fill missing impressions values where known match exists in data")
+            merge_online = st.checkbox("Merge 'blogs' and 'press releases' into 'Online'", value=True)
+            fill_known_imp = st.checkbox("Fill missing impressions values where known match exists in data", value=True)
             submitted = st.form_submit_button("Go!")
             if submitted:
                 with st.spinner("Running standard cleaning."):
@@ -733,6 +766,219 @@ elif page == "5: Authors":
         st.text(stats)
 
 
+elif page == "5.5: Author - Outlets":
+    st.title("Author - Outlets")
+    traditional = st.session_state.df_traditional
+    auth_counter = st.session_state.auth_counter
+    auth_outlet_table = st.session_state.auth_outlet_table
+    from unidecode import unidecode
+
+    if st.session_state.upload_step == False:
+        st.error('Please upload a CSV before trying this step.')
+    elif st.session_state.standard_step == False:
+        st.error('Please run the Standard Cleaning before trying this step.')
+    else:
+        top_auths_by = st.selectbox('Top Authors by: ', ['Mentions', 'Impressions'])
+        if len(auth_outlet_table) == 0:
+            if top_auths_by == 'Mentions':
+                auth_outlet_table = traditional[['Author', 'Mentions', 'Impressions']].groupby(by=['Author']).sum().sort_values(
+                ['Mentions', 'Impressions'], ascending=False).reset_index()
+            if top_auths_by == 'Impressions':
+                auth_outlet_table = traditional[['Author', 'Mentions', 'Impressions']].groupby(
+                    by=['Author']).sum().sort_values(
+                    ['Impressions'], ascending=False).reset_index()
+
+        auth_counter = st.session_state.auth_counter
+
+        if auth_counter < len(auth_outlet_table):
+            author_name = auth_outlet_table.iloc[auth_counter]['Author']
+            # SKIP & RESET SKIP COUNTER SECTION
+
+            col1, but1, but2 = st.columns([2,1,1])
+            with col1:
+                st.markdown("""
+                                <h2 style="color: goldenrod; padding-top:0!important;"> 
+                                """ + author_name.upper() +
+                            """</h2>
+                            <style>.css-12w0qpk {padding-top:15px !important}</style>
+                            """, unsafe_allow_html=True)
+            with but1:
+                next_auth = st.button('Skip to Next Author')
+                if next_auth:
+                    auth_counter += 1
+                    st.session_state.auth_counter = auth_counter
+                    st.experimental_rerun()
+
+                with but2:
+                    reset_counter = st.button('Reset Skips')
+                    if reset_counter:
+                        auth_counter = 0
+                        st.session_state.auth_counter = auth_counter
+                        st.experimental_rerun()
+
+            search_results = fetch_outlet(unidecode(author_name))
+            number_of_authors = len(search_results['results'])
+            db_outlets = []
+
+            if search_results['results'] == []:
+                matched_authors = []
+            elif search_results == None:
+                matched_authors = []
+            else:
+                response_results = search_results['results']
+                outlet_results = []
+
+                for result in response_results:
+                    auth_name = result['firstName'] + " " + result['lastName']
+                    job_title = result['primaryEmployment']['jobTitle']
+                    outlet = result['primaryEmployment']['outletName']
+                    country = result['country']['name']
+                    auth_tuple = (auth_name, job_title, outlet, country)
+                    outlet_results.append(auth_tuple)
+
+                matched_authors = pd.DataFrame.from_records(outlet_results,
+                                                            columns=['Name', 'Title', 'Outlet', 'Country'])
+                matched_authors.loc[matched_authors.Outlet == "[Freelancer]", "Outlet"] = "Freelance"
+
+                # coverage_outlets =
+                db_outlets = matched_authors.Outlet.tolist()
+
+
+            #####
+
+            # OUTLETS IN COVERAGE VS DATABASE
+            # CSS to inject contained in a string
+            hide_table_row_index = """
+                                            <style>
+                                            tbody th {display:none}
+                                            .blank {display:none}
+                                            </style>
+                                            """
+
+            hide_dataframe_row_index = """
+                        <style>
+                        .row_heading.level0 {width:0; display:none}
+                        .blank {width:0; display:none}
+                        </style>
+                        """
+
+            # Inject CSS with Markdown
+            st.markdown(hide_table_row_index, unsafe_allow_html=True)
+            # st.markdown(hide_dataframe_row_index, unsafe_allow_html=True)
+
+            col1, col2, col3 = st.columns([8, 1, 16])
+            with col1:
+                st.subheader("Outlets in Coverage") #########################################
+                outlets_in_coverage = traditional.loc[traditional.Author == author_name].Outlet.value_counts()
+                outlets_in_coverage_list = outlets_in_coverage.index
+                outlets_in_coverage_list = outlets_in_coverage_list.insert(0, "Freelance")
+                outlets_in_coverage = outlets_in_coverage.rename_axis('Outlet').reset_index(name='Matches')
+
+
+                st.table(outlets_in_coverage.style.apply(
+                    lambda x: ['background: goldenrod; color: black' if v in db_outlets else "" for v in x],
+                    axis=1))
+
+
+            with col2:
+                st.write(" ")
+
+            with col3:
+                st.subheader("Media Database Matches") #####################################
+                if search_results['results'] == []:
+                    st.warning("NO MATCH FOUND")
+                    matched_authors = []
+                elif search_results == None:
+                    st.warning("NO MATCH FOUND")
+                    matched_authors = []
+                else:
+                    response_results = search_results['results']
+                    outlet_results = []
+
+                    for result in response_results:
+                        auth_name = result['firstName'] + " " + result['lastName']
+                        job_title = result['primaryEmployment']['jobTitle']
+                        outlet = result['primaryEmployment']['outletName']
+                        country = result['country']['name']
+                        auth_tuple = (auth_name, job_title, outlet, country)
+                        outlet_results.append(auth_tuple)
+                        # print('///////////////////////')
+
+                    matched_authors = pd.DataFrame.from_records(outlet_results, columns=['Name', 'Title', 'Outlet', 'Country'])
+                    matched_authors.loc[matched_authors.Outlet == "[Freelancer]", "Outlet"] = "Freelance"
+
+
+                    st.table(matched_authors.style.apply(lambda x: ['background: goldenrod; color: black' if v in outlets_in_coverage.Outlet.tolist() else "" for v in x], axis = 1))
+
+
+                    possibles = matched_authors.Outlet
+
+
+
+            # FORM TO UPDATE AUTHOR OUTLET ######################
+            with st.form('auth updater', clear_on_submit=True):
+
+                if len(matched_authors) > 0:
+                    st.write('**DATABASE MATCHES FOUND!**')
+                    box_outlet = st.selectbox('Pick from possible matches', possibles,
+                                           help='Pick from one of the outlets associated with this author name.')
+
+                else:
+                    st.write('**NO DATABASE MATCH FOUND**')
+                    box_outlet = st.selectbox('Pick "Freelance" or outlet from coverage', outlets_in_coverage_list)
+
+                string_outlet = st.text_input("OR:  Write in the outlet name",
+                                              help='Override above selection by writing in a custom name.')
+
+                submitted = st.form_submit_button("Assign Outlet")
+
+            if submitted:
+                if len(string_outlet) > 0:
+                    new_outlet = string_outlet
+                else:
+                    new_outlet = box_outlet
+
+                auth_outlet_table.loc[auth_outlet_table["Author"] == author_name, "Outlet"] = new_outlet
+                auth_counter += 1
+                st.session_state.auth_counter = auth_counter
+                st.session_state.auth_outlet_table = auth_outlet_table
+
+                st.experimental_rerun()
+
+
+
+            col1, col2, col3 = st.columns([6, 1, 4])
+            with col1:
+                st.subheader("Top Authors")
+                if 'Outlet' in auth_outlet_table.columns:
+                    if top_auths_by == 'Mentions':
+                        st.table(auth_outlet_table[['Author', 'Outlet', 'Mentions', 'Impressions']].fillna('').sort_values(
+                            ['Mentions', 'Impressions'], ascending=False).head(15).style.format(format_dict))
+                    if top_auths_by == 'Impressions':
+                        st.table(auth_outlet_table[['Author', 'Outlet', 'Mentions', 'Impressions']].fillna('').sort_values(
+                            ['Impressions', 'Mentions'], ascending=False).head(15).style.format(format_dict))
+
+
+                else:
+                    st.table(auth_outlet_table[['Author', 'Mentions', 'Impressions']].fillna('').head(15).style.format(
+                        format_dict))
+            with col2:
+                st.write(" ")
+            with col3:
+                st.subheader('Outlets assigned')
+                st.metric(label='Assigned', value=auth_outlet_table.Outlet.count())
+        else:
+            st.write("You've reached the end of the list!")
+            if auth_counter > 0:
+                reset_counter = st.button('Reset Counter')
+                if reset_counter:
+                    auth_counter = 0
+                    st.session_state.auth_counter = auth_counter
+                    st.experimental_rerun()
+            else:
+                st.write("✓ Nothing left to update here.")
+        
+        
 elif page == "6: Translation":
     st.title('Translation')
     traditional = st.session_state.df_traditional
@@ -946,6 +1192,8 @@ elif page == "8: Download":
         dupes = st.session_state.df_dupes
         uncleaned = st.session_state.df_uncleaned
         export_name = st.session_state.export_name
+        auth_outlet_table = st.session_state.auth_outlet_table
+
 
         traditional['Date'] = pd.to_datetime(traditional['Date'])
         social['Date'] = pd.to_datetime(social['Date'])
@@ -959,6 +1207,8 @@ elif page == "8: Download":
 
                     traditional = traditional.sort_values(by=['Impressions'], ascending=False)
                     social = social.sort_values(by=['Impressions'], ascending=False)
+                    authors = auth_outlet_table.sort_values(by=['Mentions', 'Impressions'], ascending=False)
+
 
                     output = io.BytesIO()
                     writer = pd.ExcelWriter(output, engine='xlsxwriter', datetime_format='yyyy-mm-dd',
@@ -967,6 +1217,7 @@ elif page == "8: Download":
                     # Write the dataframe data to XlsxWriter.
                     traditional.to_excel(writer, sheet_name='CLEAN TRAD', startrow=1, header=False, index=False)
                     social.to_excel(writer, sheet_name='CLEAN SOCIAL', startrow=1, header=False, index=False)
+                    authors.to_excel(writer, sheet_name='Authors', header=True, index=False)
                     dupes.to_excel(writer, sheet_name='DLTD DUPES', header=True, index=False)
                     uncleaned.to_excel(writer, sheet_name='RAW', header=True, index=False)
 
@@ -976,6 +1227,13 @@ elif page == "8: Download":
                     worksheet2 = writer.sheets['CLEAN SOCIAL']
                     worksheet3 = writer.sheets['DLTD DUPES']
                     worksheet4 = writer.sheets['RAW']
+                    worksheet5 = writer.sheets['Authors']
+                        
+                    worksheet1.set_tab_color('black')
+                    worksheet2.set_tab_color('black')
+                    worksheet3.set_tab_color('#c26f4f')
+                    worksheet4.set_tab_color('#c26f4f')
+                    worksheet5.set_tab_color('green')
 
                     # make a list of df/worksheet tuples
                     cleaned_dfs = [(traditional, worksheet1), (social, worksheet2), (dupes, worksheet3)]
