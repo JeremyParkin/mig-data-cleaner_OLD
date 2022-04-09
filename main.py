@@ -727,7 +727,7 @@ elif page == "5: Authors - Missing":
             # Inject CSS with Markdown
             st.markdown(hide_table_row_index, unsafe_allow_html=True)
 
-            col1, col2, col3 = st.columns([6, 1, 4])
+            col1, col2, col3 = st.columns([12, 1, 9])
             with col1:
                 st.subheader("Headline")
                 st.table(headline_table.iloc[[counter]])
