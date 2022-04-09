@@ -727,12 +727,14 @@ elif page == "5: Authors - Missing":
             # Inject CSS with Markdown
             st.markdown(hide_table_row_index, unsafe_allow_html=True)
 
-            col1, col2, col3 = st.columns([4, 1, 4])
+            col1, col2, col3 = st.columns([6, 1, 4])
             with col1:
+                st.subheader("Headline")
                 st.table(headline_table.iloc[[counter]])
             with col2:
                 st.write(" ")
             with col3:
+                st.subheader("Possible Authors from Data")
                 st.table(headline_authors(traditional, headline_text).rename(columns={'index': 'Possible Author(s)',
                                                                                   'Author': 'Matches'}))
 
