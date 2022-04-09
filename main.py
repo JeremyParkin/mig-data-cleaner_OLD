@@ -108,30 +108,30 @@ def headline_authors(df, headline_text):
     return headline_authors
 
 
-def author_matcher(counter):
-    temp_headline_list = fixable_author_headline_list()
-    headline_text = temp_headline_list.iloc[counter]['Headline']
-    st.subheader("Most Fixable Headline")
-    st.write(headline_text)
-    st.subheader("Possible Authors")
-    st.write(headline_authors(traditional, headline_text))
-    with st.form('auth updater'):
-        new_author = st.text_input("\nWhat name should be applied to the author field? \n")
-        submitted = st.form_submit_button("Update Author")
-        if submitted:
-            fix_author(traditional, headline_text, new_author)
-        st.session_state.df_traditional = traditional
-
-    col1, col2 = st.columns(2)
-
-    with col1:
-        st.subheader("Original Top Authors")
-        st.write(original_top_authors)
-
-    with col2:
-        st.subheader("New Top Authors")
-        st.write(top_x_by_mentions(traditional, "Author"))
-    st.experimental_rerun()
+# def author_matcher(counter):
+#     temp_headline_list = fixable_author_headline_list()
+#     headline_text = temp_headline_list.iloc[counter]['Headline']
+#     st.subheader("Most Fixable Headline")
+#     st.write(headline_text)
+#     st.subheader("Possible Authors")
+#     st.write(headline_authors(traditional, headline_text))
+#     with st.form('auth updater'):
+#         new_author = st.text_input("\nWhat name should be applied to the author field? \n")
+#         submitted = st.form_submit_button("Update Author")
+#         if submitted:
+#             fix_author(traditional, headline_text, new_author)
+#         st.session_state.df_traditional = traditional
+#
+#     col1, col2 = st.columns(2)
+#
+#     with col1:
+#         st.subheader("Original Top Authors")
+#         st.write(original_top_authors)
+#
+#     with col2:
+#         st.subheader("New Top Authors")
+#         st.write(top_x_by_mentions(traditional, "Author"))
+#     st.experimental_rerun()
 
 
 def translate_col(df, name_of_column):
@@ -810,14 +810,16 @@ elif page == "6: Authors - Outlets":
         else:
             if top_auths_by == 'Mentions':
                 auth_outlet_table = auth_outlet_table.sort_values(['Mentions'], ascending=False)#.reset_index()
+                auth_outlet_todo = auth_outlet_table.iloc['Outlet'] != ''
             if top_auths_by == 'Impressions':
                 auth_outlet_table = auth_outlet_table.sort_values(['Impressions'], ascending=False)#.reset_index()
+                auth_outlet_todo = auth_outlet_table.iloc['Outlet'] != ''
 
 
         auth_counter = st.session_state.auth_counter
 
-        if auth_counter < len(auth_outlet_table):
-            author_name = auth_outlet_table.iloc[auth_counter]['Author']
+        if auth_counter < len(auth_outlet_todo):
+            author_name = auth_outlet_todo.iloc[auth_counter]['Author']
 
 
             # NAME, SKIP & RESET SKIP SECTION
@@ -890,8 +892,8 @@ elif page == "6: Authors - Outlets":
                         """
 
             # Inject CSS with Markdown
-            # st.markdown(hide_table_row_index, unsafe_allow_html=True)
-            # st.markdown(hide_dataframe_row_index, unsafe_allow_html=True)
+            st.markdown(hide_table_row_index, unsafe_allow_html=True)
+            st.markdown(hide_dataframe_row_index, unsafe_allow_html=True)
 
             col1, col2, col3 = st.columns([8, 1, 16])
             with col1:
@@ -927,7 +929,6 @@ elif page == "6: Authors - Outlets":
                         country = result['country']['name']
                         auth_tuple = (auth_name, job_title, outlet, country)
                         outlet_results.append(auth_tuple)
-                        # print('///////////////////////')
 
                     matched_authors = pd.DataFrame.from_records(outlet_results,
                                                                 columns=['Name', 'Title', 'Outlet', 'Country'])
