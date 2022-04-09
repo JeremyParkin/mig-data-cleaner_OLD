@@ -8,14 +8,16 @@ from deep_translator import GoogleTranslator
 from titlecase import titlecase
 import warnings
 import altair as alt
+import requests
+import random
 from concurrent.futures import ThreadPoolExecutor
 from threading import Thread
-from unidecode import unidecode
+import requests
+from requests.structures import CaseInsensitiveDict
 
 warnings.filterwarnings('ignore')
 
-st.set_page_config(layout="wide", page_title="MIG Data Cleaning App",
-                   page_icon="https://www.agilitypr.com/wp-content/uploads/2018/02/favicon-192.png")
+st.set_page_config(layout="wide", page_title="MIG Data Cleaning App", page_icon="https://www.agilitypr.com/wp-content/uploads/2018/02/favicon-192.png")
 hide_menu_style = """
         <style>
         footer {visibility: hidden;}
@@ -23,25 +25,46 @@ hide_menu_style = """
         """
 st.markdown(hide_menu_style, unsafe_allow_html=True)
 
+# def moreover_url(oldURLs):
+#     # REWRITE TO ONLY HIT ONLINE/BLOG TYPE
+#     # st.write(f"Moreovers before: {len(data.loc[data['URL'].str.contains("moreover", na=False)]})
+#     user_agent = {'User-agent': '14.0.3 Safari'}
+#     session = requests.Session()
+#     for x in oldURLs:
+#       substring = 'ct.moreover'
+#       if substring in x:
+#         try:
+#             newURL = session.get(x, header=user_agent)
+#             newURLs.append(newURL.url)
+#             # print(newURL.url)
+#         except:
+#             # print(x)
+#             newURLs.append(x)
+#       else:
+#         # print(x)
+#         newURLs.append(x)
+#     data['Updated URL'] = newURLs
+    # st.write(f"Moreovers after: {len(data.loc[data['Updated URL'].str.contains("moreover", na=False)]})
+
 
 def yahoo_cleanup(url_string):
-    data.loc[data['URL'].str.contains(url_string, na=False), "Outlet"] = "Yahoo! News"
-    data.loc[data['URL'].str.contains(url_string, na=False), "Impressions"] = 80828000
-    data.loc[data['URL'].str.contains(url_string, na=False), "Country"] = (np.nan)
-    data.loc[data['URL'].str.contains(url_string, na=False), "Continent"] = (np.nan)
-    data.loc[data['URL'].str.contains(url_string, na=False), "City"] = (np.nan)
-    data.loc[data['URL'].str.contains(url_string, na=False), "Prov/State"] = (np.nan)
-    data.loc[data['URL'].str.contains(url_string, na=False), "sub"] = data['URL'].str.rsplit('/', 1).str[-1]
-    data.loc[data['URL'].str.contains(url_string, na=False), "URL"] = 'https://news.yahoo.com/' + data["sub"]
-    data.drop(["sub"], axis=1, inplace=True, errors='ignore')
+  data.loc[data['URL'].str.contains(url_string, na=False), "Outlet"] = "Yahoo! News"
+  data.loc[data['URL'].str.contains(url_string, na=False), "Impressions"] = 80828000
+  data.loc[data['URL'].str.contains(url_string, na=False), "Country"] = (np.nan)
+  data.loc[data['URL'].str.contains(url_string, na=False), "Continent"] = (np.nan)
+  data.loc[data['URL'].str.contains(url_string, na=False), "City"] = (np.nan)
+  data.loc[data['URL'].str.contains(url_string, na=False), "Prov/State"] = (np.nan)
+  data.loc[data['URL'].str.contains(url_string, na=False), "sub"] = data['URL'].str.rsplit('/', 1).str[-1]
+  data.loc[data['URL'].str.contains(url_string, na=False), "URL"] = 'https://news.yahoo.com/'+data["sub"]
+  data.drop(["sub"], axis = 1, inplace=True, errors='ignore')
 
 
 def top_x_by_mentions(df, column_name):
-    """Returns top N items by mention count"""
-    x_table = pd.pivot_table(df, index=column_name, values=["Mentions"], aggfunc="count")
-    x_table = x_table.sort_values("Mentions", ascending=False)
-    x_table = x_table.rename(columns={"Mentions": "Hits"})
-    return x_table.head(10)
+  """Returns top N items by mention count"""
+  x_table = pd.pivot_table(df, index=column_name, values=["Mentions"], aggfunc="count")
+  x_table = x_table.sort_values("Mentions", ascending=False)
+  x_table = x_table.rename(columns={"Mentions": "Hits"})
+  return x_table.head(10)
 
 
 def fixable_impressions_list(df):
@@ -150,42 +173,49 @@ def translate(text):
 
 
 def translation_stats_combo():
-    non_english_records = len(traditional[traditional['Language'] != 'English']) + len(
-        social[social['Language'] != 'English'])
-    minutes = non_english_records // 100
+    non_english_records = len(traditional[traditional['Language'] != 'English']) + len(social[social['Language'] != 'English'])
+    minutes = non_english_records//100
     if minutes == 0:
         min_word = 'minute'
     else:
         min_word = 'minutes'
     st.write(f"There are {non_english_records} non-English records in your data.")
+    st.write(f"\nAllow around {minutes}-{minutes + 1} {min_word} per column for translation.")
 
 
 def fetch_outlet(author_name):
-    contact_url = "https://mediadatabase.agilitypr.com/api/v4/contacts/search"
-    headers = CaseInsensitiveDict()
-    headers["Content-Type"] = "text/json"
-    headers["Accept"] = "text/json"
-    headers["Authorization"] = authorization
-    headers["client_id"] = client_id
-    headers["userclient_id"] = userclient_id
+  contact_url = "https://mediadatabase.agilitypr.com/api/v4/contacts/search"
+  headers = CaseInsensitiveDict()
+  headers["Content-Type"] = "text/json"
+  headers["Accept"] = "text/json"
+  headers["Authorization"] = "bearer THFlDu0SGHrhrmK_RR0Lg9F_gr8O2af7SXiTs1TcsvOICC7Cstr6Q3pP1Q_HdgUAdKIsOZr9cfA-myCQw088dzRHRxDnSzG0LXXcPeQCO_6RSRCyz4h1Y7mNgPgTt3cA-48jx2nxwRXe15tqPrElErbeE3ibRlhs_1S4UA4oO59Hn_w0LYdcbeaaWmmNJcm6F0vNKyjldA8pM7btCvPct4KB2TEYcy5lGW_cH6OAAtcqL4az69pT5MvZmh_dO4dT6mSpwGIjJpZvPBdHMsQdUB3t26b_gGel6t0Bmm5fTUYb3EBbYeX4m3UkdyjFxPDC_qVsswYP--WoypWe69BFT_WiwEKG0CYbTrvayreOxOFALzBqGoM-MXSUG8bTQxLcWsZDMnTJvlA8L432wFL5nw"
+  headers["client_id"] = "0ccaab57-56dc-4925-b6a7-414ff4c437a8"
+  headers["userclient_id"] = "2f320b20-c531-4007-abd2-314248c0c235"
 
-    data_a = '''
+  data_a = '''
   {  
     "aliases": [  
       "'''
 
-    data_b = '''"  
+  data_b = '''"  
     ]   
   }
   '''
 
-    data = data_a + author_name + data_b
-    contact_resp = requests.post(contact_url, headers=headers, data=data)
+  data = data_a + author_name + data_b
+  contact_resp = requests.post(contact_url, headers=headers, data=data)
 
-    return contact_resp.json()
+  return contact_resp.json()
 
+  # if contact_resp.json()['results'] == []:
+  #   print("No match found")
+  # else:
+  #   print(contact_resp.json()['results'][0]['firstName'], contact_resp.json()['results'][0]['lastName'])
+  #   print(contact_resp.json()['results'][0]['primaryEmployment']['jobTitle'])
+  #   print(contact_resp.json()['results'][0]['primaryEmployment']['outletName'])
+  #   print(contact_resp.json()['results'][0]['country']['name'])
 
-format_dict = {'AVE': '${0:,.0f}', 'Audience Reach': '{:,d}', 'Impressions': '{:,d}'}
+format_dict = {'AVE':'${0:,.0f}', 'Audience Reach': '{:,d}', 'Impressions': '{:,d}'}
 
 if 'page' not in st.session_state:
     st.session_state['page'] = '1: Upload your CSV'
@@ -225,10 +255,11 @@ if 'original_trad_auths' not in st.session_state:
     st.session_state.original_trad_auths = pd.DataFrame()
 if 'author_outlets' not in st.session_state:
     st.session_state.author_outlets = None
-if 'auth_counter' not in st.session_state:
+if'auth_counter' not in st.session_state:
     st.session_state.auth_counter = 0
-if 'auth_outlet_table' not in st.session_state:
+if'auth_outlet_table' not in st.session_state:
     st.session_state.auth_outlet_table = pd.DataFrame()
+
 
 # Sidebar and page selector
 st.sidebar.image('https://agilitypr.news/images/Agility-centered.svg', width=200)
@@ -253,7 +284,7 @@ st.sidebar.markdown("")
 st.sidebar.markdown("")
 st.sidebar.markdown("")
 st.sidebar.markdown("")
-st.sidebar.caption("v.1.5.1.6")
+st.sidebar.caption("v.1.5.1.3")
 
 if page == "1: Getting Started":
     st.title('Getting Started')
@@ -285,6 +316,14 @@ if page == "1: Getting Started":
             st.subheader("Top Outlets")
             original_top_outlets = (top_x_by_mentions(data, "Outlet"))
             st.write(original_top_outlets)
+        #
+        # source = data['Sentiment'].value_counts().reset_index()
+        # sentiment = alt.Chart(source).mark_arc().encode(
+        #     theta=alt.Theta(field="Sentiment", type="quantitative"),
+        #     color=alt.Color(field="index", type="nominal")
+        # )
+        #
+        # st.altair_chart(sentiment, use_container_width=True)
 
         st.markdown('##')
         st.subheader('Mention Trend')
@@ -315,17 +354,14 @@ if page == "1: Getting Started":
 
     else:
         with st.form("my_form"):
-            client = st.text_input('Client organization name*', placeholder='eg. Air Canada', key='client',
-                                   help='Required to build export file name.')
-            period = st.text_input('Reporting period or focus*', placeholder='eg. March 2022', key='period',
-                                   help='Required to build export file name.')
+            client = st.text_input('Client organization name*', placeholder='eg. Air Canada', key='client', help='Required to build export file name.')
+            period = st.text_input('Reporting period or focus*', placeholder='eg. March 2022', key='period', help='Required to build export file name.')
             uploaded_file = st.file_uploader(label='Upload your CSV*', type='csv',
-                                             accept_multiple_files=False,
-                                             help='Only use CSV files exported from the Agility Platform.')
+                                             accept_multiple_files=False, help='Only use CSV files exported from the Agility Platform.')
 
             submitted = st.form_submit_button("Submit")
             if submitted and (client == "" or period == "" or uploaded_file == None):
-                st.error('Missing required form inputs above.')
+                 st.error('Missing required form inputs above.')
 
             elif submitted:
                 with st.spinner("Converting file format."):
@@ -365,13 +401,35 @@ elif page == "2: Standard Cleaning":
                 st.dataframe(dupes.style.format(format_dict))
     else:
         data = st.session_state.df_raw
+        # data['Published Date'] = pd.to_datetime(data['Published Date'])
+        # data = data.rename(columns={
+        #     'Published Date': 'Date'})
+        # min_date = (data.Date.min().date())
+        # max_date = (data.Date.max().date())
+        # # st.write(min_date)
+        # # st.write(max_date)
+        # st.write(min_date).floor('D')
+        #
+        # date_range = st.date_input('Date Range', value=[min_date, max_date], min_value=min_date, max_value=max_date)
+        # #
+        # st.write(type(min_date))
+        # st.write(type(data.Date[4]))
 
         with st.form("my_form_basic_cleaning"):
             st.subheader("Cleaning options")
             merge_online = st.checkbox("Merge 'blogs' and 'press releases' into 'Online'", value=True)
             fill_known_imp = st.checkbox("Fill missing impressions values where known match exists in data", value=True)
+            # remove_newswires = st.checkbox("Remove newswires from data")
+            # collect_moreovers = st.checkbox("Collect original urls from moreover links.", help="Can take a few minutes")
+            # st.subheader("Adjust the Date Range")
+            # # date_range = st.date_input('Date Range', value=[min_date, max_date], min_value=min_date, max_value=max_date)
+            # start_date = st.date_input('Start Date', value=min_date, min_value=min_date, max_value=max_date)
+            # end_date = st.date_input('End Date', value=max_date, min_value=min_date, max_value=max_date)
             submitted = st.form_submit_button("Go!")
             if submitted:
+            #     # greater than the start date and smaller than the end date
+            #     mask = (data['Date'] >= start_date) & (data['Date'] <= end_date)
+            #     data = data.loc[mask]
                 with st.spinner("Running standard cleaning."):
 
                     data = data.rename(columns={
@@ -385,19 +443,20 @@ elif page == "2: Standard Cleaning":
                     with col1:
                         st.write('✓ Columns Renamed')
 
-                    data.Type.replace({"ONLINE_NEWS": "ONLINE NEWS", "PRESS_RELEASE": "PRESS RELEASE"}, inplace=True)
-                    data.loc[data['URL'].str.contains("www.facebook.com", na=False), 'Type'] = "FACEBOOK"
-                    data.loc[data['URL'].str.contains("/twitter.com", na=False), 'Type'] = "TWITTER"
-                    data.loc[data['URL'].str.contains("www.instagram.com", na=False), 'Type'] = "INSTAGRAM"
-                    data.loc[data['URL'].str.contains("reddit.com", na=False), 'Type'] = "REDDIT"
-                    data.loc[data['URL'].str.contains("youtube.com", na=False), 'Type'] = "YOUTUBE"
+                    data.Type.replace({
+                        "ONLINE_NEWS": "ONLINE NEWS",
+                        "PRESS_RELEASE": "PRESS RELEASE"}, inplace=True)
 
                     if merge_online:
                         data.Type.replace({
                             "ONLINE NEWS": "ONLINE",
                             "PRESS RELEASE": "ONLINE",
                             "BLOGS": "ONLINE"}, inplace=True)
-
+                    data.loc[data['URL'].str.contains("www.facebook.com", na=False), 'Type'] = "FACEBOOK"
+                    data.loc[data['URL'].str.contains("/twitter.com", na=False), 'Type'] = "TWITTER"
+                    data.loc[data['URL'].str.contains("www.instagram.com", na=False), 'Type'] = "INSTAGRAM"
+                    data.loc[data['URL'].str.contains("reddit.com", na=False), 'Type'] = "REDDIT"
+                    data.loc[data['URL'].str.contains("youtube.com", na=False), 'Type'] = "YOUTUBE"
                     with col2:
                         st.write('✓ Media Types Cleaned')
 
@@ -405,6 +464,7 @@ elif page == "2: Standard Cleaning":
                         data.loc[data["Original URL"].notnull(), "URL"] = data["Original URL"]
                         with col3:
                             st.write('✓ Original URLs Merged')
+
 
                     data.drop(["Timezone",
                                "Word Count",
@@ -449,7 +509,7 @@ elif page == "2: Standard Cleaning":
 
                     # Tag exploder
                     if "Tags" in data:
-                        data['Tags'] = data['Tags'].astype(str)  # needed if column there but all blank
+                        data['Tags'] = data['Tags'].astype(str) # needed if column there but all blank
                         data = data.join(data["Tags"].str.get_dummies(sep=","))
                         with col2:
                             st.write('✓ Tags Expanded')
@@ -462,12 +522,29 @@ elif page == "2: Standard Cleaning":
                     with col3:
                         st.write('✓ Social Split Out')
 
+
                     # Fill known impressions
                     if fill_known_imp:
                         imp_fix_table = fixable_impressions_list(data)
+                        # st.table(imp_fix_table)
+                        # st.write(f"known impressions to fill: {len(imp_fix_table)}")
+                        # known_filled = 0
+
                         for outlet in imp_fix_table.Outlet:
+                            # print(outlet, len(outlet_imp(data, outlet)), int(outlet_imp(data, outlet)['index']))
                             if len(outlet_imp(data, outlet)) == 1:
                                 fix_imp(data, outlet, int(outlet_imp(data, outlet)['index']))
+                                # known_filled += 1
+
+                            with col1:
+                                st.write(f"✓ Filled Known Impressions")
+
+                    # TODO: remove newswires
+                    # if remove_newsires:
+                    #     # save the newswires df & excel sheet
+                    #     # based on text search of summary for known newswire names.
+                    #     pass
+
 
                     # AP Cap
                     broadcast_array = ['RADIO', 'TV']
@@ -476,10 +553,61 @@ elif page == "2: Standard Cleaning":
 
                     data[['Headline']] = data[['Headline']].fillna('')
                     data['Headline'] = data['Headline'].map(lambda Headline: titlecase(Headline))
-                    # frames = [data, broadcast]
-                    # data = pd.concat(frames)
+
                     with col1:
                         st.write('✓ AP Style Capitalization')
+
+
+                    ### COLUMN BASED DUPLICATE REMOVAL ####
+
+               #      """
+               #      GOALS
+               #      - Keep most data rich version
+               #      - Save everything deleted to dupes dataframe
+               #      - Drop duplicates based on the following conditions:
+               #          - excluding broadcast and social
+               #          - none of TYPE + OUTLET + HEADLINE are blank
+               #          - TYPE + OUTLET + HEADLINE are duplicated across records
+               #
+               #      PROCESS ASSUMPTIONS
+               #      - broadcast and social already split out
+               #      - AP capitalization applied to headlines of the rest
+               #
+               #      PROCESS
+               #      - pull aside all records with blank headlines, types, and outlets
+               #      - create dupe_helper column with type/outlet/headline
+               #      - sort to prioritize records with author, impression, AVE to first in dupe sets
+               #      - dupe_cols = data[data['dupe_helper'].duplicated(keep='first') == True]
+               #      - data drop duplicates based on same
+               #      - join blank headlines/types/outlets back in.
+               #
+               #      dupe_cols.sort_values(["dupe_helper", "Author", "Impressions", "AVE"],
+               # axis = 0, ascending = [True, True, False, False])
+               #
+               #      """
+
+                    blank_set = data[data.Headline.isna() | data.Outlet.isna() | data.Type.isna()]
+                    data = data[~data.Headline.isna() | ~data.Outlet.isna() | ~data.Type.isna()]
+
+                    data["dupe_helper"] = data['Type'] + data['Outlet'] + data['Headline']  # make the helper column
+                    data = data.sort_values(["dupe_helper", "Author", "Impressions", "AVE"], axis=0,
+                                            ascending=[True, True, False, False])
+                    dupe_cols = data[data['dupe_helper'].duplicated(keep='first') == True]
+                    data = data[~data['dupe_helper'].duplicated(keep='first') == True]
+
+                    # Drop dupe helper column from both
+                    data.drop(["dupe_helper"], axis=1, inplace=True, errors='ignore')
+                    dupe_cols.drop(["dupe_helper"], axis=1, inplace=True, errors='ignore')
+
+                    frames = [data, blank_set]
+                    data = pd.concat(frames)
+
+
+                    ### END SECTION ###
+
+
+                    # TODO: Flag suspected duplicates based on Outlet, Type, and fuzzy match headline
+
 
                     # Yahoo standardizer
                     yahoo_cleanup('sports.yahoo.com')
@@ -494,45 +622,29 @@ elif page == "2: Standard Cleaning":
                     blank_urls = data[data.URL.isna()]
                     data = data[~data.URL.isna()]
 
+
                     # Add temporary dupe URL helper column
                     data['URL_Helper'] = data['URL'].str.lower()
                     data['URL_Helper'] = data['URL_Helper'].str.replace('http:', 'https:')
 
-                    # Sort duplicate URLS
+                    # Sort and Save duplicate URLS
                     data = data.sort_values(["URL_Helper", "Author", "Impressions", "AVE"], axis=0,
                                             ascending=[True, True, False, False])
-                    # Save duplicate URLS
                     dupe_urls = data[data['URL_Helper'].duplicated(keep='first') == True]
 
-                    # Remove duplicate URLS
+                    # Drop duplicate URLs
                     data = data[~data['URL_Helper'].duplicated(keep='first') == True]
 
-                    # Drop URL Helper column from both dfs
+                    # Drop Helper columns from both
                     data.drop(["URL_Helper"], axis=1, inplace=True, errors='ignore')
                     dupe_urls.drop(["URL_Helper"], axis=1, inplace=True, errors='ignore')
 
-                    frames = [data, blank_urls]
-                    data = pd.concat(frames)
-
-                    ### Dupe column cleaning ###
-
-                    # Split off records with blank headline/outlet/type
-                    blank_set = data[data.Headline.isna() | data.Outlet.isna() | data.Type.isna()]
-                    data = data[~data.Headline.isna() | data.Outlet.isna() | data.Type.isna()]
-
-                    # Add helper column
-                    data["dupe_helper"] = data['Type'] + data['Outlet'] + data['Headline']
-                    data = data.sort_values(["dupe_helper", "Author", "Impressions", "AVE"], axis=0,
-                                            ascending=[True, True, False, False])
-                    dupe_cols = data[data['dupe_helper'].duplicated(keep='first') == True]
-                    data = data[~data['dupe_helper'].duplicated(keep='first') == True]
 
                     # Drop helper column and rejoin broadcast
-                    data.drop(["dupe_helper"], axis=1, inplace=True, errors='ignore')
-                    dupe_cols.drop(["dupe_helper"], axis=1, inplace=True, errors='ignore')
-                    frames = [data, broadcast, blank_set]
+                    frames = [data, broadcast, blank_set, blank_urls]
                     traditional = pd.concat(frames)
                     dupes = pd.concat([dupe_urls, dupe_cols])
+
 
                     with col3:
                         st.write('✓ Duplicates Removed')
@@ -554,6 +666,45 @@ elif page == "2: Standard Cleaning":
                     st.session_state.df_dupes = dupes
                     st.session_state.standard_step = True
 
+                    # Fetch remaining Moreover URLs
+                    # if collect_moreovers:
+                    #     # Put moreovers in sep. DF:
+                    #     moreovers = data.loc[data['URL'].str.contains('ct.moreover', na=False)]
+                    #
+                    #     # Remove moreovers from main DF
+                    #     data = data[~data['URL'].str.contains('ct.moreover', na=False)]
+                    #
+                    #     # Make lists for oldurls and new
+                    #     oldURLs = moreovers['URL']
+                    #     newURLs = []
+                    #     USER_AGENTS = (
+                    #         'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.7; rv:11.0) Gecko/20100101 Firefox/11.0',
+                    #         'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:22.0) Gecko/20100 101 Firefox/22.0',
+                    #         'Mozilla/5.0 (Windows NT 6.1; rv:11.0) Gecko/20100101 Firefox/11.0',
+                    #       )
+                    #
+                    #     # loop through them
+                    #     for address in oldURLs:
+                    #         substring = 'ct.moreover'
+                    #         if substring in address:
+                    #             try:
+                    #                 # user_agent = {'User-agent': '14.0.3 Safari'}
+                    #                 session = requests.Session()
+                    #                 r1 = session.get(address, timeout=3, headers={'User-Agent': random.choice(USER_AGENTS)})
+                    #                 # st.write(r1.url)
+                    #                 newURLs.append(r1.url)
+                    #             except:
+                    #                 newURLs.append(address)
+                    #
+                    #     moreovers['Updated URL'] = newURLs
+                    #     moreovers.loc[moreovers["URL"].notnull(), "URL"] = moreovers["Updated URL"]
+                    #
+                    #     frames = [data, moreovers]
+                    #     data = pd.concat(frames)
+                    #
+                    #     with col3:
+                    #         st.write('✓ Moreover URLs searched')
+
 elif page == "3: Impressions - Outliers":
     traditional = st.session_state.df_traditional
     st.title('Impressions - Outliers')
@@ -562,11 +713,10 @@ elif page == "3: Impressions - Outliers":
     elif len(traditional) == 0:
         st.subheader("No traditional media in data. Skip to next step.")
     elif st.session_state.standard_step == False:
-        st.error('Please run the Standard Cleaning before trying this step.')
+            st.error('Please run the Standard Cleaning before trying this step.')
     else:
         st.subheader('Check highest impressions numbers:')
-        outliers = traditional[['Outlet', 'Type', 'Impressions', 'Headline', 'URL', 'Country']].nlargest(100,
-                                                                                                         'Impressions')
+        outliers = traditional[['Outlet', 'Type', 'Impressions', 'Headline', 'URL', 'Country']].nlargest(100, 'Impressions')
         outliers.index.name = 'Row'
         st.dataframe(outliers.style.format(format_dict))
         outlier_index = outliers.index.values.tolist()
@@ -574,9 +724,8 @@ elif page == "3: Impressions - Outliers":
         with st.form("Update Outliers", clear_on_submit=True):
             st.subheader("Update Impressions Outliers")
             index_numbers = st.multiselect('Row index number(s): ', outlier_index,
-                                           help='Select the row number from the table above.')
-            new_impressions_value = int(st.number_input('New impressions value for row(s)', step=1,
-                                                        help='Write in the new impression value for the selected row.'))
+                                               help='Select the row number from the table above.')
+            new_impressions_value = int(st.number_input('New impressions value for row(s)', step=1, help='Write in the new impression value for the selected row.'))
             submitted = st.form_submit_button("Go!")
             if submitted:
                 for index_number in index_numbers:
@@ -603,7 +752,7 @@ elif page == "4: Impressions - Fill Blanks":
         st.success("Missing impressions fill complete!")
 
     elif st.session_state.outliers == False:
-        st.error('Please confirm outliers step is complete before running this step.')
+        st.warning('Please confirm outliers step is complete before running this step.')
         done_outliers = st.button('Done with outliers')
         if done_outliers:
             st.session_state.outliers = True
@@ -685,8 +834,8 @@ elif page == "5: Authors":
         headline_table = headline_table.sort_values("Missing", ascending=False)
         headline_table = headline_table.reset_index()
         headline_table.rename(columns={'Author': 'Known',
-                                       'Mentions': 'Total'},
-                              inplace=True, errors='raise')
+                           'Mentions': 'Total'},
+                  inplace=True, errors='raise')
 
         temp_headline_list = headline_table
         if counter < len(temp_headline_list):
@@ -710,6 +859,7 @@ elif page == "5: Authors":
                         st.session_state.counter = counter
                         st.experimental_rerun()
 
+
             possibles = headline_authors(traditional, headline_text)['index'].tolist()
 
             # CSS to inject contained in a string
@@ -728,11 +878,9 @@ elif page == "5: Authors":
 
             with st.form('auth updater', clear_on_submit=True):
 
-                box_author = st.selectbox('Pick from possible Authors', possibles,
-                                          help='Pick from one of the authors already associated with this headline.')
+                box_author = st.selectbox('Pick from possible Authors', possibles, help='Pick from one of the authors already associated with this headline.')
                 st.markdown("#### - OR -")
-                string_author = st.text_input("Write in the author name",
-                                              help='Override above selection by writing in a custom name.')
+                string_author = st.text_input("Write in the author name", help='Override above selection by writing in a custom name.')
 
                 if len(string_author) > 0:
                     new_author = string_author
@@ -759,22 +907,27 @@ elif page == "5: Authors":
 
         with col1:
             st.subheader("Original Top Authors")
-            st.dataframe(original_trad_auths)
+            st.write(original_trad_auths)
+
 
         with col2:
             st.subheader("New Top Authors")
-            st.dataframe(top_x_by_mentions(traditional, "Author"))
+            st.write(top_x_by_mentions(traditional, "Author"))
+
 
         st.subheader("Fixable Author Stats")
         stats = (fixable_headline_stats(traditional, primary="Headline", secondary="Author"))
         st.text(stats)
 
 
+# TODO: Top Headlines / stories
+
 elif page == "5.5: Author - Outlets":
     st.title("Author - Outlets")
     traditional = st.session_state.df_traditional
     auth_counter = st.session_state.auth_counter
     auth_outlet_table = st.session_state.auth_outlet_table
+    from unidecode import unidecode
 
     if st.session_state.upload_step == False:
         st.error('Please upload a CSV before trying this step.')
@@ -784,9 +937,8 @@ elif page == "5.5: Author - Outlets":
         top_auths_by = st.selectbox('Top Authors by: ', ['Mentions', 'Impressions'])
         if len(auth_outlet_table) == 0:
             if top_auths_by == 'Mentions':
-                auth_outlet_table = traditional[['Author', 'Mentions', 'Impressions']].groupby(
-                    by=['Author']).sum().sort_values(
-                    ['Mentions', 'Impressions'], ascending=False).reset_index()
+                auth_outlet_table = traditional[['Author', 'Mentions', 'Impressions']].groupby(by=['Author']).sum().sort_values(
+                ['Mentions', 'Impressions'], ascending=False).reset_index()
             if top_auths_by == 'Impressions':
                 auth_outlet_table = traditional[['Author', 'Mentions', 'Impressions']].groupby(
                     by=['Author']).sum().sort_values(
@@ -798,7 +950,31 @@ elif page == "5.5: Author - Outlets":
             author_name = auth_outlet_table.iloc[auth_counter]['Author']
             # SKIP & RESET SKIP COUNTER SECTION
 
-            col1, but1, but2 = st.columns([2, 1, 1])
+            # st.header(author_name.upper())
+            # st.markdown("""
+            #     <h2 style="color: goldenrod">
+            #     """ + author_name +
+            #             """</h2>""", unsafe_allow_html=True)
+
+            # but1, col3, but2 = st.columns(3)
+            # with but1:
+            #     next_auth = st.button('Skip to Next Author')
+            #     if next_auth:
+            #         auth_counter += 1
+            #         st.session_state.auth_counter = auth_counter
+            #         st.experimental_rerun()
+            #
+            # if auth_counter > 0:
+            #     with col3:
+            #         st.write(f"Reviewed / Skipped: {auth_counter}")
+            #     with but2:
+            #         reset_counter = st.button('Reset Skips')
+            #         if reset_counter:
+            #             auth_counter = 0
+            #             st.session_state.auth_counter = auth_counter
+            #             st.experimental_rerun()
+
+            col1, but1, but2 = st.columns([2,1,1])
             with col1:
                 st.markdown("""
                                 <h2 style="color: goldenrod; padding-top:0!important;"> 
@@ -847,6 +1023,7 @@ elif page == "5.5: Author - Outlets":
                 # coverage_outlets =
                 db_outlets = matched_authors.Outlet.tolist()
 
+
             #####
 
             # OUTLETS IN COVERAGE VS DATABASE
@@ -871,21 +1048,34 @@ elif page == "5.5: Author - Outlets":
 
             col1, col2, col3 = st.columns([8, 1, 16])
             with col1:
-                st.subheader("Outlets in Coverage")  #########################################
+                st.subheader("Outlets in Coverage") #########################################
                 outlets_in_coverage = traditional.loc[traditional.Author == author_name].Outlet.value_counts()
                 outlets_in_coverage_list = outlets_in_coverage.index
                 outlets_in_coverage_list = outlets_in_coverage_list.insert(0, "Freelance")
+
+                # df = df.value_counts().rename_axis('unique_values').reset_index(name='counts')
+
+
                 outlets_in_coverage = outlets_in_coverage.rename_axis('Outlet').reset_index(name='Matches')
+
 
                 st.table(outlets_in_coverage.style.apply(
                     lambda x: ['background: goldenrod; color: black' if v in db_outlets else "" for v in x],
                     axis=1))
 
+                # outlets_in_coverage = outlets_in_coverage.set_index('Outlet')
+                #
+                # st.dataframe(outlets_in_coverage.style.apply(
+                #     lambda x: ['background: goldenrod; color: black' if v in db_outlets else "" for v in x],
+                #     axis=1))
+
+
+
             with col2:
                 st.write(" ")
 
             with col3:
-                st.subheader("Media Database Matches")  #####################################
+                st.subheader("Media Database Matches") #####################################
                 if search_results['results'] == []:
                     st.warning("NO MATCH FOUND")
                     matched_authors = []
@@ -905,15 +1095,16 @@ elif page == "5.5: Author - Outlets":
                         outlet_results.append(auth_tuple)
                         # print('///////////////////////')
 
-                    matched_authors = pd.DataFrame.from_records(outlet_results,
-                                                                columns=['Name', 'Title', 'Outlet', 'Country'])
+                    matched_authors = pd.DataFrame.from_records(outlet_results, columns=['Name', 'Title', 'Outlet', 'Country'])
                     matched_authors.loc[matched_authors.Outlet == "[Freelancer]", "Outlet"] = "Freelance"
 
-                    st.table(matched_authors.style.apply(lambda x: [
-                        'background: goldenrod; color: black' if v in outlets_in_coverage.Outlet.tolist() else "" for v
-                        in x], axis=1))
+
+                    st.table(matched_authors.style.apply(lambda x: ['background: goldenrod; color: black' if v in outlets_in_coverage.Outlet.tolist() else "" for v in x], axis = 1))
+
 
                     possibles = matched_authors.Outlet
+
+
 
             # FORM TO UPDATE AUTHOR OUTLET ######################
             with st.form('auth updater', clear_on_submit=True):
@@ -921,7 +1112,7 @@ elif page == "5.5: Author - Outlets":
                 if len(matched_authors) > 0:
                     st.write('**DATABASE MATCHES FOUND!**')
                     box_outlet = st.selectbox('Pick from possible matches', possibles,
-                                              help='Pick from one of the outlets associated with this author name.')
+                                           help='Pick from one of the outlets associated with this author name.')
 
                 else:
                     st.write('**NO DATABASE MATCH FOUND**')
@@ -945,18 +1136,18 @@ elif page == "5.5: Author - Outlets":
 
                 st.experimental_rerun()
 
+
+
             col1, col2, col3 = st.columns([6, 1, 4])
             with col1:
                 st.subheader("Top Authors")
                 if 'Outlet' in auth_outlet_table.columns:
                     if top_auths_by == 'Mentions':
-                        st.table(
-                            auth_outlet_table[['Author', 'Outlet', 'Mentions', 'Impressions']].fillna('').sort_values(
-                                ['Mentions', 'Impressions'], ascending=False).head(15).style.format(format_dict))
+                        st.table(auth_outlet_table[['Author', 'Outlet', 'Mentions', 'Impressions']].fillna('').sort_values(
+                            ['Mentions', 'Impressions'], ascending=False).head(15).style.format(format_dict))
                     if top_auths_by == 'Impressions':
-                        st.table(
-                            auth_outlet_table[['Author', 'Outlet', 'Mentions', 'Impressions']].fillna('').sort_values(
-                                ['Impressions', 'Mentions'], ascending=False).head(15).style.format(format_dict))
+                        st.table(auth_outlet_table[['Author', 'Outlet', 'Mentions', 'Impressions']].fillna('').sort_values(
+                            ['Impressions', 'Mentions'], ascending=False).head(15).style.format(format_dict))
 
 
                 else:
@@ -979,6 +1170,12 @@ elif page == "5.5: Author - Outlets":
                 st.write("✓ Nothing left to update here.")
 
 
+        # TODO: if table exists, table to sheet on export
+        # TODO: layout improvements?
+        # TODO: (maybe later) toggle to choose look at top Authors by impressions or mentions
+        # TODO: NICE TO HAVE: job title for database matched authors
+
+
 elif page == "6: Translation":
     st.title('Translation')
     traditional = st.session_state.df_traditional
@@ -989,27 +1186,15 @@ elif page == "6: Translation":
         st.error('Please run the Standard Cleaning before trying this step.')
     elif st.session_state.translated_headline == True and st.session_state.translated_snippet == True and st.session_state.translated_summary == True:
         st.subheader("✓ Translation complete.")
-        trad_non_eng = len(traditional[traditional['Language'] != 'English'])
-        soc_non_eng = len(social[social['Language'] != 'English'])
-
-        if trad_non_eng > 0:
-            with st.expander("Traditional - Non-English"):
-                st.dataframe(traditional[traditional['Language'] != 'English'][
-                                 ['Outlet', 'Headline', 'Snippet', 'Summary', 'Language', 'Country']])
-
-        if soc_non_eng > 0:
-            with st.expander("Social - Non-English"):
-                st.dataframe(social[social['Language'] != 'English'][
-                                 ['Outlet', 'Snippet', 'Summary', 'Language', 'Country']])
-    elif len(traditional[traditional['Language'] != 'English']) == 0 and len(
-            social[social['Language'] != 'English']) == 0:
+    elif len(traditional[traditional['Language'] != 'English']) == 0 and len(social[social['Language'] != 'English']) == 0:
         st.subheader("No translation required")
     else:
         translation_stats_combo()
+        st.write(len(traditional[traditional['Language'] != 'English']))
+        st.write(len(social[social['Language'] != 'English']))
         if len(traditional) > 0:
             with st.expander("Traditional - Non-English"):
-                st.dataframe(traditional[traditional['Language'] != 'English'][
-                                 ['Outlet', 'Headline', 'Snippet', 'Summary', 'Language', 'Country']])
+                st.dataframe(traditional[traditional['Language'] != 'English'][['Outlet', 'Headline','Snippet','Summary','Language','Country']])
 
         if len(social) > 0:
             with st.expander("Social - Non-English"):
@@ -1051,12 +1236,7 @@ elif page == "6: Translation":
                     # AP Cap
                     broadcast_array = ['RADIO', 'TV']
                     broadcast = traditional.loc[traditional['Type'].isin(broadcast_array)]
-                    # TODO: swap this for the 1 line version
-                    index_names = traditional[(traditional['Type'] == 'RADIO')].index
-                    traditional.drop(index_names, inplace=True)
-                    index_names = traditional[(traditional['Type'] == 'TV')].index
-                    traditional.drop(index_names, inplace=True)
-
+                    traditional = traditional[~traditional['Type'].isin(broadcast_array)]
                     traditional[['Headline']] = traditional[['Headline']].fillna('')
                     traditional['Headline'] = traditional['Headline'].map(lambda Headline: titlecase(Headline))
                     frames = [traditional, broadcast]
@@ -1113,6 +1293,7 @@ elif page == "7: Review":
                     top_outlets = (top_x_by_mentions(traditional, "Outlet"))
                     st.table(top_outlets)
 
+
                 st.markdown('##')
                 st.subheader('Mention Trend')
 
@@ -1145,6 +1326,17 @@ elif page == "7: Review":
                 with col2:
                     st.subheader("Media Type")
                     st.write(social['Type'].value_counts())
+
+                # col3, col4 = st.columns(2)
+                # with col3:
+                #     st.subheader("Top Authors")
+                #     top_authors = (top_x_by_mentions(social, "Author"))
+                #     st.write(top_authors)
+                #
+                # with col4:
+                #     st.subheader("Top Outlets")
+                #     top_outlets = (top_x_by_mentions(social, "Outlet"))
+                #     st.write(top_outlets)
 
                 st.markdown('##')
                 st.subheader('Mention Trend')
@@ -1217,6 +1409,7 @@ elif page == "8: Download":
                     # Write the dataframe data to XlsxWriter.
                     traditional.to_excel(writer, sheet_name='CLEAN TRAD', startrow=1, header=False, index=False)
                     social.to_excel(writer, sheet_name='CLEAN SOCIAL', startrow=1, header=False, index=False)
+                    # if len(authors) > 0:
                     authors.to_excel(writer, sheet_name='Authors', header=True, index=False)
                     dupes.to_excel(writer, sheet_name='DLTD DUPES', header=True, index=False)
                     uncleaned.to_excel(writer, sheet_name='RAW', header=True, index=False)
