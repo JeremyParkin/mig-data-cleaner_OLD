@@ -108,32 +108,6 @@ def headline_authors(df, headline_text):
     return headline_authors
 
 
-# def author_matcher(counter):
-#     temp_headline_list = fixable_author_headline_list()
-#     headline_text = temp_headline_list.iloc[counter]['Headline']
-#     st.subheader("Most Fixable Headline")
-#     st.write(headline_text)
-#     st.subheader("Possible Authors")
-#     st.write(headline_authors(traditional, headline_text))
-#     with st.form('auth updater'):
-#         new_author = st.text_input("\nWhat name should be applied to the author field? \n")
-#         submitted = st.form_submit_button("Update Author")
-#         if submitted:
-#             fix_author(traditional, headline_text, new_author)
-#         st.session_state.df_traditional = traditional
-#
-#     col1, col2 = st.columns(2)
-#
-#     with col1:
-#         st.subheader("Original Top Authors")
-#         st.write(original_top_authors)
-#
-#     with col2:
-#         st.subheader("New Top Authors")
-#         st.write(top_x_by_mentions(traditional, "Author"))
-#     st.experimental_rerun()
-
-
 def translate_col(df, name_of_column):
     """Replaces non-English string in column with English"""
     global dictionary
@@ -1001,6 +975,8 @@ elif page == "6: Authors - Outlets":
                     st.metric(label='Assigned', value=0)
         else:
             st.write("You've reached the end of the list!")
+            st.write(auth_counter)
+            st.write(len(auth_outlet_todo))
             if auth_counter > 0:
                 reset_counter = st.button('Reset Counter')
                 if reset_counter:
