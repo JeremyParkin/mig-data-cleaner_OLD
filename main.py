@@ -169,7 +169,7 @@ def fetch_outlet(author_name):
     headers["Accept"] = "text/json"
     headers["Authorization"] = st.secrets["authorization"]
     headers["client_id"] = st.secrets["client_id"]
-    headers["userclient_id"] = st.sectrets["userclient_id"]
+    headers["userclient_id"] = st.secrets["userclient_id"]
 
     data_a = '''
   {  
