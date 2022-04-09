@@ -808,6 +808,7 @@ elif page == "6: Authors - Outlets":
                     by=['Author']).sum().sort_values(
                     ['Impressions'], ascending=False).reset_index()
             auth_outlet_table.Outlet = ''
+            auth_outlet_todo = auth_outlet_table.loc[auth_outlet_table['Outlet'] == '']
 
         else:
             if top_auths_by == 'Mentions':
