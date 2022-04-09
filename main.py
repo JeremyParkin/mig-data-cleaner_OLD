@@ -594,18 +594,22 @@ elif page == "3: Impressions - Outliers":
 elif page == "4: Impressions - Fill Blanks":
     st.title('Impressions - Fill Blanks')
     traditional = st.session_state.df_traditional
+    blank_impressions = traditional['Impressions'].isna().sum()
 
     if st.session_state.upload_step == False:
         st.error('Please upload a CSV before trying this step.')
 
     elif len(traditional) == 0:
-        st.subheader("No traditional media in data. Skip to next step.")
+        st.warning("No traditional media in data. Skip to next step.")
 
     elif st.session_state.standard_step == False:
         st.error('Please run the Standard Cleaning before trying this step.')
 
     elif st.session_state.filled == True:
         st.success("Missing impressions fill complete!")
+
+    elif blank_impressions == 0:
+        st.info('No missing impressions numbers in data')
 
     elif st.session_state.outliers == False:
         st.warning('Please confirm outliers step is complete before running this step.')
@@ -615,9 +619,6 @@ elif page == "4: Impressions - Fill Blanks":
             st.experimental_rerun()
 
     else:
-        traditional = st.session_state.df_traditional
-
-        blank_impressions = traditional['Impressions'].isna().sum()
         mean = "{:,}".format(int(traditional.Impressions.mean()))
         median = "{:,}".format(int(traditional.Impressions.median()))
         tercile = "{:,}".format(int(traditional.Impressions.quantile(0.33)))
@@ -808,11 +809,9 @@ elif page == "6: Authors - Outlets":
 
         else:
             if top_auths_by == 'Mentions':
-                auth_outlet_table = auth_outlet_table.sort_values(
-                    ['Mentions'], ascending=False).reset_index()
+                auth_outlet_table = auth_outlet_table.sort_values(['Mentions'], ascending=False)#.reset_index()
             if top_auths_by == 'Impressions':
-                auth_outlet_table = auth_outlet_table.sort_values(
-                    ['Impressions'], ascending=False).reset_index()
+                auth_outlet_table = auth_outlet_table.sort_values(['Impressions'], ascending=False)#.reset_index()
 
 
         auth_counter = st.session_state.auth_counter
