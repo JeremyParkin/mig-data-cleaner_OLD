@@ -11,6 +11,8 @@ import altair as alt
 from concurrent.futures import ThreadPoolExecutor
 from threading import Thread
 from unidecode import unidecode
+import requests
+from requests.structures import CaseInsensitiveDict
 
 warnings.filterwarnings('ignore')
 
