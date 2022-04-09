@@ -809,6 +809,14 @@ elif page == "6: Authors - Outlets":
             #         auth_outlet_table[['Author', 'Outlet', 'Mentions', 'Impressions']].fillna('').sort_values(
             #             ['Impressions', 'Mentions'], ascending=False).head(15).style.format(format_dict))
 
+        else:
+            if top_auths_by == 'Mentions':
+                auth_outlet_table = auth_outlet_table.sort_values(
+                    ['Mentions'], ascending=False).reset_index()
+            if top_auths_by == 'Impressions':
+                auth_outlet_table = auth_outlet_table.sort_values(
+                    ['Impressions'], ascending=False).reset_index()
+
         st.table(top_auths_by.head(5))
 
         auth_counter = st.session_state.auth_counter
