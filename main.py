@@ -231,6 +231,8 @@ if 'auth_counter' not in st.session_state:
     st.session_state.auth_counter = 0
 if 'auth_outlet_table' not in st.session_state:
     st.session_state.auth_outlet_table = pd.DataFrame()
+if 'top_auths_by' not in st.session_state:
+    st.session_state.top_auths_by = 'Mentions'
 
 # Sidebar and page selector
 st.sidebar.image('https://agilitypr.news/images/Agility-centered.svg', width=200)
@@ -733,8 +735,8 @@ elif page == "5: Authors - Missing":
 
                 box_author = st.selectbox('Pick from possible Authors', possibles,
                                           help='Pick from one of the authors already associated with this headline.')
-                st.markdown("#### - OR -")
-                string_author = st.text_input("Write in the author name",
+
+                string_author = st.text_input("OR: Write in the author name",
                                               help='Override above selection by writing in a custom name.')
 
                 if len(string_author) > 0:
@@ -778,6 +780,7 @@ elif page == "6: Authors - Outlets":
     traditional = st.session_state.df_traditional
     auth_counter = st.session_state.auth_counter
     auth_outlet_table = st.session_state.auth_outlet_table
+    top_auths_by = st.session_state.top_auths_by
 
     if st.session_state.upload_step == False:
         st.error('Please upload a CSV before trying this step.')
@@ -785,6 +788,7 @@ elif page == "6: Authors - Outlets":
         st.error('Please run the Standard Cleaning before trying this step.')
     else:
         top_auths_by = st.selectbox('Top Authors by: ', ['Mentions', 'Impressions'])
+        st.session_state.top_auths_by = top_auths_by
         if len(auth_outlet_table) == 0:
             if top_auths_by == 'Mentions':
                 auth_outlet_table = traditional[['Author', 'Mentions', 'Impressions']].groupby(
@@ -869,7 +873,7 @@ elif page == "6: Authors - Outlets":
                         """
 
             # Inject CSS with Markdown
-            st.markdown(hide_table_row_index, unsafe_allow_html=True)
+            # st.markdown(hide_table_row_index, unsafe_allow_html=True)
             # st.markdown(hide_dataframe_row_index, unsafe_allow_html=True)
 
             col1, col2, col3 = st.columns([8, 1, 16])
