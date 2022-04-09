@@ -727,8 +727,13 @@ elif page == "5: Authors - Missing":
             # Inject CSS with Markdown
             st.markdown(hide_table_row_index, unsafe_allow_html=True)
 
-            st.table(headline_table.iloc[[counter]])
-            st.table(headline_authors(traditional, headline_text).rename(columns={'index': 'Possible Author(s)',
+            col1, col2, col3 = st.columns([4, 1, 4])
+            with col1:
+                st.table(headline_table.iloc[[counter]])
+            with col2:
+                st.write(" ")
+            with col3:
+                st.table(headline_authors(traditional, headline_text).rename(columns={'index': 'Possible Author(s)',
                                                                                   'Author': 'Matches'}))
 
             with st.form('auth updater', clear_on_submit=True):
@@ -789,7 +794,6 @@ elif page == "6: Authors - Outlets":
     else:
         top_auths_by = st.selectbox('Top Authors by: ', ['Mentions', 'Impressions'])
         st.session_state.top_auths_by = top_auths_by
-        # st.write(top_auths_by)
         if len(auth_outlet_table) == 0:
             if top_auths_by == 'Mentions':
                 auth_outlet_table = traditional[['Author', 'Mentions', 'Impressions']].groupby(
@@ -800,15 +804,6 @@ elif page == "6: Authors - Outlets":
                     by=['Author']).sum().sort_values(
                     ['Impressions'], ascending=False).reset_index()
 
-            # if top_auths_by == 'Mentions':
-            #     st.table(
-            #         auth_outlet_table[['Author', 'Outlet', 'Mentions', 'Impressions']].fillna('').sort_values(
-            #             ['Mentions', 'Impressions'], ascending=False).head(15).style.format(format_dict))
-            # if top_auths_by == 'Impressions':
-            #     st.table(
-            #         auth_outlet_table[['Author', 'Outlet', 'Mentions', 'Impressions']].fillna('').sort_values(
-            #             ['Impressions', 'Mentions'], ascending=False).head(15).style.format(format_dict))
-
         else:
             if top_auths_by == 'Mentions':
                 auth_outlet_table = auth_outlet_table.sort_values(
@@ -817,7 +812,6 @@ elif page == "6: Authors - Outlets":
                 auth_outlet_table = auth_outlet_table.sort_values(
                     ['Impressions'], ascending=False).reset_index()
 
-        # st.table(auth_outlet_table.head(5))
 
         auth_counter = st.session_state.auth_counter
 
