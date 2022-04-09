@@ -817,7 +817,7 @@ elif page == "6: Authors - Outlets":
                 auth_outlet_table = auth_outlet_table.sort_values(
                     ['Impressions'], ascending=False).reset_index()
 
-        st.table(top_auths_by.head(5))
+        st.table(auth_outlet_table.head(5))
 
         auth_counter = st.session_state.auth_counter
 
