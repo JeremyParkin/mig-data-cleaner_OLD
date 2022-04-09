@@ -286,6 +286,7 @@ if page == "1: Getting Started":
             original_top_outlets = (top_x_by_mentions(data, "Outlet"))
             st.write(original_top_outlets)
 
+
         st.markdown('##')
         st.subheader('Mention Trend')
 
@@ -384,7 +385,7 @@ elif page == "2: Standard Cleaning":
                     col1, col2, col3 = st.columns(3)
                     with col1:
                         st.write('✓ Columns Renamed')
-
+                        
                     data.Type.replace({"ONLINE_NEWS": "ONLINE NEWS", "PRESS_RELEASE": "PRESS RELEASE"}, inplace=True)
                     data.loc[data['URL'].str.contains("www.facebook.com", na=False), 'Type'] = "FACEBOOK"
                     data.loc[data['URL'].str.contains("/twitter.com", na=False), 'Type'] = "TWITTER"
