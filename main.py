@@ -792,13 +792,13 @@ elif page == "6: Authors - Outlets":
         st.write(top_auths_by)
         if len(auth_outlet_table) == 0:
             if top_auths_by == 'Mentions':
-                auth_outlet_table = traditional[['Author', 'Mentions', 'Impressions']].groupby(
+                auth_outlet_table = traditional[['Author', 'Mentions']].groupby(
                     by=['Author']).sum().sort_values(
-                    ['Mentions', 'Impressions'], ascending=False).reset_index()
+                    ['Mentions'], ascending=False).reset_index()
             if top_auths_by == 'Impressions':
-                auth_outlet_table = traditional[['Author', 'Mentions', 'Impressions']].groupby(
+                auth_outlet_table = traditional[['Author', 'Impressions']].groupby(
                     by=['Author']).sum().sort_values(
-                    ['Impressions', 'Mentions'], ascending=False).reset_index()
+                    ['Impressions'], ascending=False).reset_index()
 
         auth_counter = st.session_state.auth_counter
 
