@@ -789,7 +789,7 @@ elif page == "6: Authors - Outlets":
     else:
         top_auths_by = st.selectbox('Top Authors by: ', ['Mentions', 'Impressions'])
         st.session_state.top_auths_by = top_auths_by
-        st.write(top_auths_by)
+        # st.write(top_auths_by)
         if len(auth_outlet_table) == 0:
             if top_auths_by == 'Mentions':
                 auth_outlet_table = traditional[['Author', 'Mentions', 'Impressions']].groupby(
@@ -817,7 +817,7 @@ elif page == "6: Authors - Outlets":
                 auth_outlet_table = auth_outlet_table.sort_values(
                     ['Impressions'], ascending=False).reset_index()
 
-        st.table(auth_outlet_table.head(5))
+        # st.table(auth_outlet_table.head(5))
 
         auth_counter = st.session_state.auth_counter
 
