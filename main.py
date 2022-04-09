@@ -167,9 +167,9 @@ def fetch_outlet(author_name):
     headers = CaseInsensitiveDict()
     headers["Content-Type"] = "text/json"
     headers["Accept"] = "text/json"
-    headers["Authorization"] = authorization
-    headers["client_id"] = client_id
-    headers["userclient_id"] = userclient_id
+    headers["Authorization"] = st.secrets["authorization"]
+    headers["client_id"] = st.secrets["client_id"]
+    headers["userclient_id"] = st.sectrets["userclient_id"]
 
     data_a = '''
   {  
