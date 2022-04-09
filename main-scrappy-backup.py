@@ -188,9 +188,9 @@ def fetch_outlet(author_name):
   headers = CaseInsensitiveDict()
   headers["Content-Type"] = "text/json"
   headers["Accept"] = "text/json"
-  headers["Authorization"] = "bearer THFlDu0SGHrhrmK_RR0Lg9F_gr8O2af7SXiTs1TcsvOICC7Cstr6Q3pP1Q_HdgUAdKIsOZr9cfA-myCQw088dzRHRxDnSzG0LXXcPeQCO_6RSRCyz4h1Y7mNgPgTt3cA-48jx2nxwRXe15tqPrElErbeE3ibRlhs_1S4UA4oO59Hn_w0LYdcbeaaWmmNJcm6F0vNKyjldA8pM7btCvPct4KB2TEYcy5lGW_cH6OAAtcqL4az69pT5MvZmh_dO4dT6mSpwGIjJpZvPBdHMsQdUB3t26b_gGel6t0Bmm5fTUYb3EBbYeX4m3UkdyjFxPDC_qVsswYP--WoypWe69BFT_WiwEKG0CYbTrvayreOxOFALzBqGoM-MXSUG8bTQxLcWsZDMnTJvlA8L432wFL5nw"
-  headers["client_id"] = "0ccaab57-56dc-4925-b6a7-414ff4c437a8"
-  headers["userclient_id"] = "2f320b20-c531-4007-abd2-314248c0c235"
+  headers["Authorization"] = st.secrets["authorization"]
+  headers["client_id"] = st.secrets["client_id"]
+  headers["userclient_id"] = st.secrets["userclient_id"]
 
   data_a = '''
   {  
