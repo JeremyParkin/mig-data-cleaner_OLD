@@ -798,7 +798,7 @@ elif page == "6: Authors - Outlets":
             if top_auths_by == 'Impressions':
                 auth_outlet_table = traditional[['Author', 'Mentions', 'Impressions']].groupby(
                     by=['Author']).sum().sort_values(
-                    ['Impressions'], ascending=False).reset_index()
+                    ['Impressions', 'Mentions'], ascending=False).reset_index()
 
         auth_counter = st.session_state.auth_counter
 
