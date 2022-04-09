@@ -606,7 +606,7 @@ elif page == "4: Impressions - Fill Blanks":
         st.success("Missing impressions fill complete!")
 
     elif st.session_state.outliers == False:
-        st.error('Please confirm outliers step is complete before running this step.')
+        st.warning('Please confirm outliers step is complete before running this step.')
         done_outliers = st.button('Done with outliers')
         if done_outliers:
             st.session_state.outliers = True
@@ -969,7 +969,10 @@ elif page == "5.5: Author - Outlets":
                 st.write(" ")
             with col3:
                 st.subheader('Outlets assigned')
-                st.metric(label='Assigned', value=auth_outlet_table.Outlet.count())
+                if 'Outlet' in auth_outlet_table.columns:
+                    st.metric(label='Assigned', value=auth_outlet_table.Outlet.count())
+                else:
+                    st.metric(label='Assigned', value=0)
         else:
             st.write("You've reached the end of the list!")
             if auth_counter > 0:
