@@ -774,7 +774,9 @@ elif page == "5: Authors":
 
 
 elif page == "5.5: Author - Outlets":
-    st.title("Author - Outlets")
+    col1, col2 = st.columns(2)
+    with col1:
+        st.title("Author - Outlets")
     traditional = st.session_state.df_traditional
     auth_counter = st.session_state.auth_counter
     auth_outlet_table = st.session_state.auth_outlet_table
@@ -784,16 +786,17 @@ elif page == "5.5: Author - Outlets":
     elif st.session_state.standard_step == False:
         st.error('Please run the Standard Cleaning before trying this step.')
     else:
-        top_auths_by = st.selectbox('Top Authors by: ', ['Mentions', 'Impressions'])
-        if len(auth_outlet_table) == 0:
-            if top_auths_by == 'Mentions':
-                auth_outlet_table = traditional[['Author', 'Mentions', 'Impressions']].groupby(
-                    by=['Author']).sum().sort_values(
-                    ['Mentions', 'Impressions'], ascending=False).reset_index()
-            if top_auths_by == 'Impressions':
-                auth_outlet_table = traditional[['Author', 'Mentions', 'Impressions']].groupby(
-                    by=['Author']).sum().sort_values(
-                    ['Impressions'], ascending=False).reset_index()
+        with col2:
+            top_auths_by = st.selectbox('Top Authors by: ', ['Mentions', 'Impressions'])
+            if len(auth_outlet_table) == 0:
+                if top_auths_by == 'Mentions':
+                    auth_outlet_table = traditional[['Author', 'Mentions', 'Impressions']].groupby(
+                        by=['Author']).sum().sort_values(
+                        ['Mentions', 'Impressions'], ascending=False).reset_index()
+                if top_auths_by == 'Impressions':
+                    auth_outlet_table = traditional[['Author', 'Mentions', 'Impressions']].groupby(
+                        by=['Author']).sum().sort_values(
+                        ['Impressions'], ascending=False).reset_index()
 
         auth_counter = st.session_state.auth_counter
 
