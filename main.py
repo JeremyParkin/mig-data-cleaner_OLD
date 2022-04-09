@@ -240,11 +240,11 @@ pagelist = [
     "2: Standard Cleaning",
     "3: Impressions - Outliers",
     "4: Impressions - Fill Blanks",
-    "5: Authors",
-    "5.5: Author - Outlets",
-    "6: Translation",
-    "7: Review",
-    "8: Download"]
+    "5: Authors - Missing",
+    "6: Authors - Outlets",
+    "7: Translation",
+    "8: Review",
+    "9: Download"]
 
 page = st.sidebar.radio("Data Cleaning Steps:", pagelist, index=0)
 st.sidebar.markdown("")
@@ -666,7 +666,7 @@ elif page == "4: Impressions - Fill Blanks":
 
 
 
-elif page == "5: Authors":
+elif page == "5: Authors - Missing":
     st.title('Authors')
     traditional = st.session_state.df_traditional
     original_trad_auths = st.session_state.original_trad_auths
@@ -773,7 +773,7 @@ elif page == "5: Authors":
         st.text(stats)
 
 
-elif page == "5.5: Author - Outlets":
+elif page == "6: Authors - Outlets":
     st.title("Author - Outlets")
     traditional = st.session_state.df_traditional
     auth_counter = st.session_state.auth_counter
@@ -985,7 +985,7 @@ elif page == "5.5: Author - Outlets":
                 st.write("✓ Nothing left to update here.")
 
 
-elif page == "6: Translation":
+elif page == "7: Translation":
     st.title('Translation')
     traditional = st.session_state.df_traditional
     social = st.session_state.df_social
@@ -1086,7 +1086,7 @@ elif page == "6: Translation":
                 st.experimental_rerun()
 
 
-elif page == "7: Review":
+elif page == "8: Review":
     st.title('Review')
     if st.session_state.upload_step == False:
         st.error('Please upload a CSV before trying this step.')
@@ -1187,7 +1187,7 @@ elif page == "7: Review":
                 st.dataframe(dupes.style.format(format_dict))
 
 
-elif page == "8: Download":
+elif page == "9: Download":
     # TODO: ONLY INCLUDE CLEAN SHEETS FOR data sets that exist
     st.title('Download')
     if st.session_state.upload_step == False:
