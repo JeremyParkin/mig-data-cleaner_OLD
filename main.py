@@ -810,12 +810,12 @@ elif page == "6: Authors - Outlets":
         else:
             if top_auths_by == 'Mentions':
                 auth_outlet_table = auth_outlet_table.sort_values(['Mentions'], ascending=False)#.reset_index()
-                auth_outlet_todo = auth_outlet_table.loc[auth_outlet_table['Outlet'] != '']
+                auth_outlet_todo = auth_outlet_table.loc[auth_outlet_table['Outlet'] == '']
                 # broadcast = traditional.loc[traditional['Type'].isin(broadcast_array)]
 
             if top_auths_by == 'Impressions':
                 auth_outlet_table = auth_outlet_table.sort_values(['Impressions'], ascending=False)#.reset_index()
-                auth_outlet_todo = auth_outlet_table.loc[auth_outlet_table['Outlet'] != '']
+                auth_outlet_todo = auth_outlet_table.loc[auth_outlet_table['Outlet'] == '']
 
 
         auth_counter = st.session_state.auth_counter
