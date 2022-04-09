@@ -802,10 +802,12 @@ elif page == "6: Authors - Outlets":
                 auth_outlet_table = traditional[['Author', 'Mentions', 'Impressions']].groupby(
                     by=['Author']).sum().sort_values(
                     ['Mentions'], ascending=False).reset_index()
+
             if top_auths_by == 'Impressions':
                 auth_outlet_table = traditional[['Author', 'Mentions', 'Impressions']].groupby(
                     by=['Author']).sum().sort_values(
                     ['Impressions'], ascending=False).reset_index()
+            auth_outlet_table.Outlet = ''
 
         else:
             if top_auths_by == 'Mentions':
@@ -820,7 +822,7 @@ elif page == "6: Authors - Outlets":
 
         auth_counter = st.session_state.auth_counter
 
-        if auth_counter < len(auth_outlet_table):
+        if auth_counter < len(auth_outlet_todo):
             author_name = auth_outlet_todo.iloc[auth_counter]['Author']
 
 
