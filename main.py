@@ -792,19 +792,32 @@ elif page == "6: Authors - Outlets":
         st.write(top_auths_by)
         if len(auth_outlet_table) == 0:
             if top_auths_by == 'Mentions':
-                auth_outlet_table = traditional[['Author', 'Mentions']].groupby(
+                auth_outlet_table = traditional[['Author', 'Mentions', 'Impressions']].groupby(
                     by=['Author']).sum().sort_values(
                     ['Mentions'], ascending=False).reset_index()
             if top_auths_by == 'Impressions':
-                auth_outlet_table = traditional[['Author', 'Impressions']].groupby(
+                auth_outlet_table = traditional[['Author', 'Mentions', 'Impressions']].groupby(
                     by=['Author']).sum().sort_values(
                     ['Impressions'], ascending=False).reset_index()
+
+            # if top_auths_by == 'Mentions':
+            #     st.table(
+            #         auth_outlet_table[['Author', 'Outlet', 'Mentions', 'Impressions']].fillna('').sort_values(
+            #             ['Mentions', 'Impressions'], ascending=False).head(15).style.format(format_dict))
+            # if top_auths_by == 'Impressions':
+            #     st.table(
+            #         auth_outlet_table[['Author', 'Outlet', 'Mentions', 'Impressions']].fillna('').sort_values(
+            #             ['Impressions', 'Mentions'], ascending=False).head(15).style.format(format_dict))
+
+        st.table(top_auths_by.head(5))
 
         auth_counter = st.session_state.auth_counter
 
         if auth_counter < len(auth_outlet_table):
             author_name = auth_outlet_table.iloc[auth_counter]['Author']
-            # SKIP & RESET SKIP COUNTER SECTION
+
+
+            # NAME, SKIP & RESET SKIP SECTION
 
             col1, but1, but2 = st.columns([2, 1, 1])
             with col1:
