@@ -820,7 +820,7 @@ elif page == "6: Authors - Outlets":
 
         auth_counter = st.session_state.auth_counter
 
-        if auth_counter < len(auth_outlet_todo):
+        if auth_counter < len(auth_outlet_table):
             author_name = auth_outlet_todo.iloc[auth_counter]['Author']
 
 
