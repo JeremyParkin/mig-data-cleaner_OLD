@@ -815,10 +815,10 @@ elif page == "6: Authors - Outlets":
             col1, but1, but2 = st.columns([2, 1, 1])
             with col1:
                 st.markdown("""
-                                <h2 style="color: goldenrod; padding-top:0!important;"> 
+                                <h2 style="color: goldenrod; padding-top:0!important; margin-top:-"> 
                                 """ + author_name.upper() +
                             """</h2>
-                            <style>.css-12w0qpk {padding-top:15px !important}</style>
+                            <style>.css-12w0qpk {padding-top:22px !important}</style>
                             """, unsafe_allow_html=True)
             with but1:
                 next_auth = st.button('Skip to Next Author')
