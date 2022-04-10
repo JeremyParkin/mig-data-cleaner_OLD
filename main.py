@@ -949,6 +949,7 @@ elif page == "6: Authors - Outlets":
                         box_outlet = st.selectbox('Pick outlet from COVERAGE or "Freelance"', outlets_in_coverage_list)
 
                 with col2:
+                    st.write(" ")
                     st.subheader("OR")
                 with col3:
                     string_outlet = st.text_input("OR:  Write in the outlet name",
