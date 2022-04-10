@@ -201,8 +201,10 @@ if 'original_trad_auths' not in st.session_state:
     st.session_state.original_trad_auths = pd.DataFrame()
 if 'author_outlets' not in st.session_state:
     st.session_state.author_outlets = None
-if 'auth_counter' not in st.session_state:
-    st.session_state.auth_counter = 0
+if 'auth_outlet_skipped' not in st.session_state:
+    st.session_state.auth_outlet_skipped = 0
+if 'auth_outlet_assigned' not in st.session_state:
+    st.session_state.auth_outlet_assigned = 0
 if 'auth_outlet_table' not in st.session_state:
     st.session_state.auth_outlet_table = pd.DataFrame()
 if 'top_auths_by' not in st.session_state:
@@ -760,9 +762,10 @@ elif page == "5: Authors - Missing":
 elif page == "6: Authors - Outlets":
     st.title("Author - Outlets")
     traditional = st.session_state.df_traditional
-    auth_counter = st.session_state.auth_counter
+    auth_outlet_skipped = st.session_state.auth_outlet_skipped
     auth_outlet_table = st.session_state.auth_outlet_table
     top_auths_by = st.session_state.top_auths_by
+    auth_outlet_assigned = st.session_state.auth_outlet_assigned
 
     if st.session_state.upload_step == False:
         st.error('Please upload a CSV before trying this step.')
@@ -776,13 +779,15 @@ elif page == "6: Authors - Outlets":
                 auth_outlet_table = traditional[['Author', 'Mentions', 'Impressions']].groupby(
                     by=['Author']).sum().sort_values(
                     ['Mentions'], ascending=False).reset_index()
+                auth_outlet_table.Outlet = ''
+                auth_outlet_todo = auth_outlet_table
 
             if top_auths_by == 'Impressions':
                 auth_outlet_table = traditional[['Author', 'Mentions', 'Impressions']].groupby(
                     by=['Author']).sum().sort_values(
                     ['Impressions'], ascending=False).reset_index()
-            auth_outlet_table.Outlet = ''
-            auth_outlet_todo = auth_outlet_table
+                auth_outlet_table.Outlet = ''
+                auth_outlet_todo = auth_outlet_table
 
         else:
             if top_auths_by == 'Mentions':
@@ -798,10 +803,10 @@ elif page == "6: Authors - Outlets":
                 st.table(auth_outlet_todo)
 
 
-        auth_counter = st.session_state.auth_counter
+        auth_outlet_skipped = st.session_state.auth_outlet_skipped
 
-        if auth_counter < len(auth_outlet_todo):
-            author_name = auth_outlet_todo.iloc[auth_counter]['Author']
+        if auth_outlet_skipped < len(auth_outlet_todo):
+            author_name = auth_outlet_todo.iloc[auth_outlet_skipped]['Author']
 
             # NAME, SKIP & RESET SKIP SECTION
             col1, but1, but2 = st.columns([2, 1, 1])
@@ -815,15 +820,15 @@ elif page == "6: Authors - Outlets":
             with but1:
                 next_auth = st.button('Skip to Next Author')
                 if next_auth:
-                    auth_counter += 1
-                    st.session_state.auth_counter = auth_counter
+                    auth_outlet_skipped += 1
+                    st.session_state.auth_outlet_skipped = auth_outlet_skipped
                     st.experimental_rerun()
 
                 with but2:
                     reset_counter = st.button('Reset Skips')
                     if reset_counter:
-                        auth_counter = 0
-                        st.session_state.auth_counter = auth_counter
+                        auth_outlet_skipped = 0
+                        st.session_state.auth_outlet_skipped = auth_outlet_skipped
                         st.experimental_rerun()
 
             search_results = fetch_outlet(unidecode(author_name))
@@ -921,7 +926,7 @@ elif page == "6: Authors - Outlets":
                     possibles = matched_authors.Outlet
 
             # FORM TO UPDATE AUTHOR OUTLET ######################
-            st.write(f"Counter: {auth_counter}")
+            st.write(f"Counter: {auth_outlet_skipped}")
             st.write(f"To Do: {len(auth_outlet_todo)}")
             with st.form('auth updater', clear_on_submit=True):
 
@@ -940,14 +945,16 @@ elif page == "6: Authors - Outlets":
                 submitted = st.form_submit_button("Assign Outlet")
 
             if submitted:
+                auth_outlet_assigned += 1
                 if len(string_outlet) > 0:
                     new_outlet = string_outlet
                 else:
                     new_outlet = box_outlet
 
                 auth_outlet_table.loc[auth_outlet_table["Author"] == author_name, "Outlet"] = new_outlet
-                # auth_counter += 1
-                st.session_state.auth_counter = auth_counter
+                # auth_outlet_skipped += 1
+                st.session_state.auth_outlet_skipped = auth_outlet_skipped
+                st.session_state.auth_outlet_assigned = auth_outlet_assigned
                 st.session_state.auth_outlet_table = auth_outlet_table
                 st.experimental_rerun()
 
@@ -977,13 +984,13 @@ elif page == "6: Authors - Outlets":
                     st.metric(label='Assigned', value=0)
         else:
             st.write("You've reached the end of the list!")
-            st.write(f"Counter: {auth_counter}")
+            st.write(f"Counter: {auth_outlet_skipped}")
             st.write(f"To Do: {len(auth_outlet_todo)}")
-            if auth_counter > 0:
+            if auth_outlet_skipped > 0:
                 reset_counter = st.button('Reset Counter')
                 if reset_counter:
-                    auth_counter = 0
-                    st.session_state.auth_counter = auth_counter
+                    auth_outlet_skipped = 0
+                    st.session_state.auth_outlet_skipped = auth_outlet_skipped
                     st.experimental_rerun()
             else:
                 st.write("✓ Nothing left to update here.")
