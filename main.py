@@ -160,6 +160,9 @@ def fetch_outlet(author_name):
 
     return contact_resp.json()
 
+def reset_skips():
+    st.session_state.auth_outlet_skipped = 0
+
 
 format_dict = {'AVE': '${0:,.0f}', 'Audience Reach': '{:,d}', 'Impressions': '{:,d}'}
 
@@ -203,8 +206,6 @@ if 'author_outlets' not in st.session_state:
     st.session_state.author_outlets = None
 if 'auth_outlet_skipped' not in st.session_state:
     st.session_state.auth_outlet_skipped = 0
-if 'auth_outlet_assigned' not in st.session_state:
-    st.session_state.auth_outlet_assigned = 0
 if 'auth_outlet_table' not in st.session_state:
     st.session_state.auth_outlet_table = pd.DataFrame()
 if 'top_auths_by' not in st.session_state:
@@ -727,7 +728,7 @@ elif page == "5: Authors - Missing":
                     st.subheader("OR")
 
                 with col3:
-                    string_author = st.text_input("OR: Write in the author name",
+                    string_author = st.text_input("Write in the author name",
                                     help='Override above selection by writing in a custom name.')
 
                 if len(string_author) > 0:
@@ -772,11 +773,6 @@ elif page == "6: Authors - Outlets":
     auth_outlet_skipped = st.session_state.auth_outlet_skipped
     auth_outlet_table = st.session_state.auth_outlet_table
     top_auths_by = st.session_state.top_auths_by
-    auth_outlet_assigned = st.session_state.auth_outlet_assigned
-
-    def reset_skips():
-        # auth_outlet_skipped = 0
-        st.session_state.auth_outlet_skipped = 0
 
     if st.session_state.upload_step == False:
         st.error('Please upload a CSV before trying this step.')
@@ -799,21 +795,15 @@ elif page == "6: Authors - Outlets":
                     ['Impressions', 'Mentions'], ascending=False).reset_index()
                 auth_outlet_table['Outlet'] = ''
                 auth_outlet_todo = auth_outlet_table
-            # st.write("Auth Outlet Table")
-            # st.write(auth_outlet_table)
 
         else:
             if top_auths_by == 'Mentions':
                 auth_outlet_table = auth_outlet_table.sort_values(['Mentions', 'Impressions'], ascending=False)#.reset_index()
                 auth_outlet_todo = auth_outlet_table.loc[auth_outlet_table['Outlet'] == '']
-                # st.write("To Do:")
-                # st.table(auth_outlet_todo)
 
             if top_auths_by == 'Impressions':
                 auth_outlet_table = auth_outlet_table.sort_values(['Impressions', 'Mentions'], ascending=False)#.reset_index()
                 auth_outlet_todo = auth_outlet_table.loc[auth_outlet_table['Outlet'] == '']
-                # st.write("To Do:")
-                # st.table(auth_outlet_todo)
 
 
         auth_outlet_skipped = st.session_state.auth_outlet_skipped
@@ -868,10 +858,7 @@ elif page == "6: Authors - Outlets":
                                                             columns=['Name', 'Title', 'Outlet', 'Country'])
                 matched_authors.loc[matched_authors.Outlet == "[Freelancer]", "Outlet"] = "Freelance"
 
-                # coverage_outlets =
                 db_outlets = matched_authors.Outlet.tolist()
-
-            #####
 
             # OUTLETS IN COVERAGE VS DATABASE
             # CSS to inject contained in a string
@@ -939,33 +926,27 @@ elif page == "6: Authors - Outlets":
                     possibles = matched_authors.Outlet
 
             # FORM TO UPDATE AUTHOR OUTLET ######################
-            # st.write(f"Counter: {auth_outlet_skipped}")
-            # st.write(f"To Do: {len(auth_outlet_todo)}")
             with st.form('auth updater', clear_on_submit=True):
                 # if len(matched_authors) > 0:
-                #     st.write('**DATABASE MATCHES FOUND!**')
                 col1, col2, col3 = st.columns([8, 1, 8])
                 with col1:
                     if len(matched_authors) > 0:
-                        # st.write('**DATABASE MATCHES FOUND!**')
                         box_outlet = st.selectbox('Pick outlet from DATABASE MATCHES', possibles,
                                                   help='Pick from one of the outlets associated with this author name.')
 
                     else:
-                        # st.write('**NO DATABASE MATCH FOUND**')
                         box_outlet = st.selectbox('Pick outlet from COVERAGE or "Freelance"', outlets_in_coverage_list)
 
                 with col2:
                     st.write(" ")
                     st.subheader("OR")
                 with col3:
-                    string_outlet = st.text_input("OR:  Write in the outlet name",
+                    string_outlet = st.text_input("Write in the outlet name",
                                               help='Override above selection by writing in a custom name.')
 
                 submitted = st.form_submit_button("Assign Outlet")
 
             if submitted:
-                auth_outlet_assigned += 1
                 if len(string_outlet) > 0:
                     new_outlet = string_outlet
                 else:
@@ -974,7 +955,6 @@ elif page == "6: Authors - Outlets":
                 auth_outlet_table.loc[auth_outlet_table["Author"] == author_name, "Outlet"] = new_outlet
                 # auth_outlet_skipped += 1
                 st.session_state.auth_outlet_skipped = auth_outlet_skipped
-                st.session_state.auth_outlet_assigned = auth_outlet_assigned
                 st.session_state.auth_outlet_table = auth_outlet_table
                 st.experimental_rerun()
 
