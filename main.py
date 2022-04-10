@@ -902,7 +902,7 @@ elif page == "6: Authors - Outlets":
                 st.write(" ")
 
             with col3:
-                st.subheader("Media Database Matches")  #####################################
+                st.subheader("Media Database Results")  #####################################
                 if search_results['results'] == []:
                     st.warning("NO MATCH FOUND")
                     matched_authors = []
