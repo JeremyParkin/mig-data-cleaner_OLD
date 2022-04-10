@@ -797,13 +797,13 @@ elif page == "6: Authors - Outlets":
 
         else:
             if top_auths_by == 'Mentions':
-                auth_outlet_table = auth_outlet_table.sort_values(['Mentions', 'Impressions'], ascending=False).reset_index()
+                auth_outlet_table = auth_outlet_table.sort_values(['Mentions', 'Impressions'], ascending=False)#.reset_index()
                 auth_outlet_todo = auth_outlet_table.loc[auth_outlet_table['Outlet'] == '']
                 # st.write("To Do:")
                 # st.table(auth_outlet_todo)
 
             if top_auths_by == 'Impressions':
-                auth_outlet_table = auth_outlet_table.sort_values(['Impressions', 'Mentions'], ascending=False).reset_index()
+                auth_outlet_table = auth_outlet_table.sort_values(['Impressions', 'Mentions'], ascending=False)#.reset_index()
                 auth_outlet_todo = auth_outlet_table.loc[auth_outlet_table['Outlet'] == '']
                 # st.write("To Do:")
                 # st.table(auth_outlet_todo)
