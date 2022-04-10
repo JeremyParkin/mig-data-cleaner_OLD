@@ -108,32 +108,6 @@ def headline_authors(df, headline_text):
     return headline_authors
 
 
-def author_matcher(counter):
-    temp_headline_list = fixable_author_headline_list()
-    headline_text = temp_headline_list.iloc[counter]['Headline']
-    st.subheader("Most Fixable Headline")
-    st.write(headline_text)
-    st.subheader("Possible Authors")
-    st.write(headline_authors(traditional, headline_text))
-    with st.form('auth updater'):
-        new_author = st.text_input("\nWhat name should be applied to the author field? \n")
-        submitted = st.form_submit_button("Update Author")
-        if submitted:
-            fix_author(traditional, headline_text, new_author)
-        st.session_state.df_traditional = traditional
-
-    col1, col2 = st.columns(2)
-
-    with col1:
-        st.subheader("Original Top Authors")
-        st.write(original_top_authors)
-
-    with col2:
-        st.subheader("New Top Authors")
-        st.write(top_x_by_mentions(traditional, "Author"))
-    st.experimental_rerun()
-
-
 def translate_col(df, name_of_column):
     """Replaces non-English string in column with English"""
     global dictionary
@@ -186,6 +160,9 @@ def fetch_outlet(author_name):
 
     return contact_resp.json()
 
+def reset_skips():
+    st.session_state.auth_outlet_skipped = 0
+
 
 format_dict = {'AVE': '${0:,.0f}', 'Audience Reach': '{:,d}', 'Impressions': '{:,d}'}
 
@@ -227,8 +204,8 @@ if 'original_trad_auths' not in st.session_state:
     st.session_state.original_trad_auths = pd.DataFrame()
 if 'author_outlets' not in st.session_state:
     st.session_state.author_outlets = None
-if 'auth_counter' not in st.session_state:
-    st.session_state.auth_counter = 0
+if 'auth_outlet_skipped' not in st.session_state:
+    st.session_state.auth_outlet_skipped = 0
 if 'auth_outlet_table' not in st.session_state:
     st.session_state.auth_outlet_table = pd.DataFrame()
 if 'top_auths_by' not in st.session_state:
@@ -594,18 +571,22 @@ elif page == "3: Impressions - Outliers":
 elif page == "4: Impressions - Fill Blanks":
     st.title('Impressions - Fill Blanks')
     traditional = st.session_state.df_traditional
+    blank_impressions = traditional['Impressions'].isna().sum()
 
     if st.session_state.upload_step == False:
         st.error('Please upload a CSV before trying this step.')
 
     elif len(traditional) == 0:
-        st.subheader("No traditional media in data. Skip to next step.")
+        st.warning("No traditional media in data. Skip to next step.")
 
     elif st.session_state.standard_step == False:
         st.error('Please run the Standard Cleaning before trying this step.')
 
     elif st.session_state.filled == True:
         st.success("Missing impressions fill complete!")
+
+    elif blank_impressions == 0:
+        st.info('No missing impressions numbers in data')
 
     elif st.session_state.outliers == False:
         st.warning('Please confirm outliers step is complete before running this step.')
@@ -615,9 +596,6 @@ elif page == "4: Impressions - Fill Blanks":
             st.experimental_rerun()
 
     else:
-        traditional = st.session_state.df_traditional
-
-        blank_impressions = traditional['Impressions'].isna().sum()
         mean = "{:,}".format(int(traditional.Impressions.mean()))
         median = "{:,}".format(int(traditional.Impressions.median()))
         tercile = "{:,}".format(int(traditional.Impressions.quantile(0.33)))
@@ -669,7 +647,7 @@ elif page == "4: Impressions - Fill Blanks":
 
 
 elif page == "5: Authors - Missing":
-    st.title('Authors')
+    st.title('Authors - Missing')
     traditional = st.session_state.df_traditional
     original_trad_auths = st.session_state.original_trad_auths
 
@@ -727,17 +705,31 @@ elif page == "5: Authors - Missing":
             # Inject CSS with Markdown
             st.markdown(hide_table_row_index, unsafe_allow_html=True)
 
-            st.table(headline_table.iloc[[counter]])
-            st.table(headline_authors(traditional, headline_text).rename(columns={'index': 'Possible Author(s)',
+            col1, col2, col3 = st.columns([12, 1, 9])
+            with col1:
+                st.subheader("Headline")
+                st.table(headline_table.iloc[[counter]])
+            with col2:
+                st.write(" ")
+            with col3:
+                st.subheader("Possible Authors from Data")
+                st.table(headline_authors(traditional, headline_text).rename(columns={'index': 'Possible Author(s)',
                                                                                   'Author': 'Matches'}))
 
             with st.form('auth updater', clear_on_submit=True):
 
-                box_author = st.selectbox('Pick from possible Authors', possibles,
-                                          help='Pick from one of the authors already associated with this headline.')
+                col1, col2, col3 = st.columns([8, 1, 8])
+                with col1:
+                    box_author = st.selectbox('Pick from possible Authors', possibles,
+                                    help='Pick from one of the authors already associated with this headline.')
 
-                string_author = st.text_input("OR: Write in the author name",
-                                              help='Override above selection by writing in a custom name.')
+                with col2:
+                    st.write(" ")
+                    st.subheader("OR")
+
+                with col3:
+                    string_author = st.text_input("Write in the author name",
+                                    help='Override above selection by writing in a custom name.')
 
                 if len(string_author) > 0:
                     new_author = string_author
@@ -778,7 +770,7 @@ elif page == "5: Authors - Missing":
 elif page == "6: Authors - Outlets":
     st.title("Author - Outlets")
     traditional = st.session_state.df_traditional
-    auth_counter = st.session_state.auth_counter
+    auth_outlet_skipped = st.session_state.auth_outlet_skipped
     auth_outlet_table = st.session_state.auth_outlet_table
     top_auths_by = st.session_state.top_auths_by
 
@@ -787,46 +779,39 @@ elif page == "6: Authors - Outlets":
     elif st.session_state.standard_step == False:
         st.error('Please run the Standard Cleaning before trying this step.')
     else:
-        top_auths_by = st.selectbox('Top Authors by: ', ['Mentions', 'Impressions'])
+        top_auths_by = st.selectbox('Top Authors by: ', ['Mentions', 'Impressions'], on_change=reset_skips)
         st.session_state.top_auths_by = top_auths_by
-        # st.write(top_auths_by)
         if len(auth_outlet_table) == 0:
             if top_auths_by == 'Mentions':
                 auth_outlet_table = traditional[['Author', 'Mentions', 'Impressions']].groupby(
                     by=['Author']).sum().sort_values(
-                    ['Mentions'], ascending=False).reset_index()
+                    ['Mentions', 'Impressions'], ascending=False).reset_index()
+                auth_outlet_table['Outlet'] = ''
+                auth_outlet_todo = auth_outlet_table
+
             if top_auths_by == 'Impressions':
                 auth_outlet_table = traditional[['Author', 'Mentions', 'Impressions']].groupby(
                     by=['Author']).sum().sort_values(
-                    ['Impressions'], ascending=False).reset_index()
-
-            # if top_auths_by == 'Mentions':
-            #     st.table(
-            #         auth_outlet_table[['Author', 'Outlet', 'Mentions', 'Impressions']].fillna('').sort_values(
-            #             ['Mentions', 'Impressions'], ascending=False).head(15).style.format(format_dict))
-            # if top_auths_by == 'Impressions':
-            #     st.table(
-            #         auth_outlet_table[['Author', 'Outlet', 'Mentions', 'Impressions']].fillna('').sort_values(
-            #             ['Impressions', 'Mentions'], ascending=False).head(15).style.format(format_dict))
+                    ['Impressions', 'Mentions'], ascending=False).reset_index()
+                auth_outlet_table['Outlet'] = ''
+                auth_outlet_todo = auth_outlet_table
 
         else:
             if top_auths_by == 'Mentions':
-                auth_outlet_table = auth_outlet_table.sort_values(
-                    ['Mentions'], ascending=False).reset_index()
+                auth_outlet_table = auth_outlet_table.sort_values(['Mentions', 'Impressions'], ascending=False)#.reset_index()
+                auth_outlet_todo = auth_outlet_table.loc[auth_outlet_table['Outlet'] == '']
+
             if top_auths_by == 'Impressions':
-                auth_outlet_table = auth_outlet_table.sort_values(
-                    ['Impressions'], ascending=False).reset_index()
+                auth_outlet_table = auth_outlet_table.sort_values(['Impressions', 'Mentions'], ascending=False)#.reset_index()
+                auth_outlet_todo = auth_outlet_table.loc[auth_outlet_table['Outlet'] == '']
 
-        # st.table(auth_outlet_table.head(5))
 
-        auth_counter = st.session_state.auth_counter
+        auth_outlet_skipped = st.session_state.auth_outlet_skipped
 
-        if auth_counter < len(auth_outlet_table):
-            author_name = auth_outlet_table.iloc[auth_counter]['Author']
-
+        if auth_outlet_skipped < len(auth_outlet_todo):
+            author_name = auth_outlet_todo.iloc[auth_outlet_skipped]['Author']
 
             # NAME, SKIP & RESET SKIP SECTION
-
             col1, but1, but2 = st.columns([2, 1, 1])
             with col1:
                 st.markdown("""
@@ -838,15 +823,15 @@ elif page == "6: Authors - Outlets":
             with but1:
                 next_auth = st.button('Skip to Next Author')
                 if next_auth:
-                    auth_counter += 1
-                    st.session_state.auth_counter = auth_counter
+                    auth_outlet_skipped += 1
+                    st.session_state.auth_outlet_skipped = auth_outlet_skipped
                     st.experimental_rerun()
 
                 with but2:
                     reset_counter = st.button('Reset Skips')
                     if reset_counter:
-                        auth_counter = 0
-                        st.session_state.auth_counter = auth_counter
+                        auth_outlet_skipped = 0
+                        st.session_state.auth_outlet_skipped = auth_outlet_skipped
                         st.experimental_rerun()
 
             search_results = fetch_outlet(unidecode(author_name))
@@ -873,10 +858,7 @@ elif page == "6: Authors - Outlets":
                                                             columns=['Name', 'Title', 'Outlet', 'Country'])
                 matched_authors.loc[matched_authors.Outlet == "[Freelancer]", "Outlet"] = "Freelance"
 
-                # coverage_outlets =
                 db_outlets = matched_authors.Outlet.tolist()
-
-            #####
 
             # OUTLETS IN COVERAGE VS DATABASE
             # CSS to inject contained in a string
@@ -895,8 +877,8 @@ elif page == "6: Authors - Outlets":
                         """
 
             # Inject CSS with Markdown
-            # st.markdown(hide_table_row_index, unsafe_allow_html=True)
-            # st.markdown(hide_dataframe_row_index, unsafe_allow_html=True)
+            st.markdown(hide_table_row_index, unsafe_allow_html=True)
+            st.markdown(hide_dataframe_row_index, unsafe_allow_html=True)
 
             col1, col2, col3 = st.columns([8, 1, 16])
             with col1:
@@ -932,7 +914,6 @@ elif page == "6: Authors - Outlets":
                         country = result['country']['name']
                         auth_tuple = (auth_name, job_title, outlet, country)
                         outlet_results.append(auth_tuple)
-                        # print('///////////////////////')
 
                     matched_authors = pd.DataFrame.from_records(outlet_results,
                                                                 columns=['Name', 'Title', 'Outlet', 'Country'])
@@ -946,17 +927,21 @@ elif page == "6: Authors - Outlets":
 
             # FORM TO UPDATE AUTHOR OUTLET ######################
             with st.form('auth updater', clear_on_submit=True):
+                # if len(matched_authors) > 0:
+                col1, col2, col3 = st.columns([8, 1, 8])
+                with col1:
+                    if len(matched_authors) > 0:
+                        box_outlet = st.selectbox('Pick outlet from DATABASE MATCHES', possibles,
+                                                  help='Pick from one of the outlets associated with this author name.')
 
-                if len(matched_authors) > 0:
-                    st.write('**DATABASE MATCHES FOUND!**')
-                    box_outlet = st.selectbox('Pick from possible matches', possibles,
-                                              help='Pick from one of the outlets associated with this author name.')
+                    else:
+                        box_outlet = st.selectbox('Pick outlet from COVERAGE or "Freelance"', outlets_in_coverage_list)
 
-                else:
-                    st.write('**NO DATABASE MATCH FOUND**')
-                    box_outlet = st.selectbox('Pick "Freelance" or outlet from coverage', outlets_in_coverage_list)
-
-                string_outlet = st.text_input("OR:  Write in the outlet name",
+                with col2:
+                    st.write(" ")
+                    st.subheader("OR")
+                with col3:
+                    string_outlet = st.text_input("Write in the outlet name",
                                               help='Override above selection by writing in a custom name.')
 
                 submitted = st.form_submit_button("Assign Outlet")
@@ -968,13 +953,12 @@ elif page == "6: Authors - Outlets":
                     new_outlet = box_outlet
 
                 auth_outlet_table.loc[auth_outlet_table["Author"] == author_name, "Outlet"] = new_outlet
-                auth_counter += 1
-                st.session_state.auth_counter = auth_counter
+                # auth_outlet_skipped += 1
+                st.session_state.auth_outlet_skipped = auth_outlet_skipped
                 st.session_state.auth_outlet_table = auth_outlet_table
-
                 st.experimental_rerun()
 
-            col1, col2, col3 = st.columns([6, 1, 4])
+            col1, col2, col3 = st.columns([8, 1, 4])
             with col1:
                 st.subheader("Top Authors")
                 if 'Outlet' in auth_outlet_table.columns:
@@ -987,7 +971,6 @@ elif page == "6: Authors - Outlets":
                             auth_outlet_table[['Author', 'Outlet', 'Mentions', 'Impressions']].fillna('').sort_values(
                                 ['Impressions', 'Mentions'], ascending=False).head(15).style.format(format_dict))
 
-
                 else:
                     st.table(auth_outlet_table[['Author', 'Mentions', 'Impressions']].fillna('').head(15).style.format(
                         format_dict))
@@ -995,17 +978,21 @@ elif page == "6: Authors - Outlets":
                 st.write(" ")
             with col3:
                 st.subheader('Outlets assigned')
+
                 if 'Outlet' in auth_outlet_table.columns:
-                    st.metric(label='Assigned', value=auth_outlet_table.Outlet.count())
+                    assigned = len(auth_outlet_table.loc[auth_outlet_table['Outlet'] != ''])
+                    st.metric(label='Assigned', value=assigned)
                 else:
                     st.metric(label='Assigned', value=0)
         else:
             st.write("You've reached the end of the list!")
-            if auth_counter > 0:
+            st.write(f"Counter: {auth_outlet_skipped}")
+            st.write(f"To Do: {len(auth_outlet_todo)}")
+            if auth_outlet_skipped > 0:
                 reset_counter = st.button('Reset Counter')
                 if reset_counter:
-                    auth_counter = 0
-                    st.session_state.auth_counter = auth_counter
+                    auth_outlet_skipped = 0
+                    st.session_state.auth_outlet_skipped = auth_outlet_skipped
                     st.experimental_rerun()
             else:
                 st.write("✓ Nothing left to update here.")
