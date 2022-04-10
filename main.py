@@ -241,7 +241,7 @@ st.sidebar.markdown("")
 st.sidebar.markdown("")
 st.sidebar.markdown("")
 st.sidebar.write("**Quick Links**")
-st.sidebar.markdown(":ladybug: [Bug Tracker](https://mediamiser.sharepoint.com/:x:/s/MIG/ESIF0YBKmq9EuXffFemDJKsBOuTn05Wii9ABFcj_q39A0A?e=zZ9oB2)")
+st.sidebar.markdown("[Bug Tracker](https://mediamiser.sharepoint.com/:x:/s/MIG/ESIF0YBKmq9EuXffFemDJKsBOuTn05Wii9ABFcj_q39A0A?e=zZ9oB2)")
 st.sidebar.markdown("")
 st.sidebar.markdown("")
 st.sidebar.caption("v.1.5.2")
@@ -898,9 +898,9 @@ elif page == "6: Authors - Outlets":
                 outlets_in_coverage_list = outlets_in_coverage_list.insert(0, "Freelance")
                 outlets_in_coverage = outlets_in_coverage.rename_axis('Outlet').reset_index(name='Matches')
 
-                st.table(outlets_in_coverage.style.apply(
+                st.dataframe(outlets_in_coverage.style.apply(
                     lambda x: ['background: goldenrod; color: black' if v in db_outlets else "" for v in x],
-                    axis=1))
+                    axis=1).hide(axis="index"))
 
             with col2:
                 st.write(" ")
