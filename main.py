@@ -767,12 +767,15 @@ elif page == "6: Authors - Outlets":
     top_auths_by = st.session_state.top_auths_by
     auth_outlet_assigned = st.session_state.auth_outlet_assigned
 
+    def reset_skips():
+        auth_outlet_skipped = 0
+
     if st.session_state.upload_step == False:
         st.error('Please upload a CSV before trying this step.')
     elif st.session_state.standard_step == False:
         st.error('Please run the Standard Cleaning before trying this step.')
     else:
-        top_auths_by = st.selectbox('Top Authors by: ', ['Mentions', 'Impressions'])
+        top_auths_by = st.selectbox('Top Authors by: ', ['Mentions', 'Impressions'], on_change=reset_skips)
         st.session_state.top_auths_by = top_auths_by
         if len(auth_outlet_table) == 0:
             if top_auths_by == 'Mentions':
