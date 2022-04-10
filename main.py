@@ -783,16 +783,19 @@ elif page == "6: Authors - Outlets":
                     ['Impressions'], ascending=False).reset_index()
             auth_outlet_table.Outlet = ''
             auth_outlet_todo = auth_outlet_table
-            # st.write(f"")
 
         else:
             if top_auths_by == 'Mentions':
                 auth_outlet_table = auth_outlet_table.sort_values(['Mentions'], ascending=False)#.reset_index()
                 auth_outlet_todo = auth_outlet_table.loc[auth_outlet_table['Outlet'] == '']
+                st.write("To Do:")
+                st.table(auth_outlet_todo)
 
             if top_auths_by == 'Impressions':
                 auth_outlet_table = auth_outlet_table.sort_values(['Impressions'], ascending=False)#.reset_index()
                 auth_outlet_todo = auth_outlet_table.loc[auth_outlet_table['Outlet'] == '']
+                st.write("To Do:")
+                st.table(auth_outlet_todo)
 
 
         auth_counter = st.session_state.auth_counter
@@ -800,9 +803,7 @@ elif page == "6: Authors - Outlets":
         if auth_counter < len(auth_outlet_todo):
             author_name = auth_outlet_todo.iloc[auth_counter]['Author']
 
-
             # NAME, SKIP & RESET SKIP SECTION
-
             col1, but1, but2 = st.columns([2, 1, 1])
             with col1:
                 st.markdown("""
@@ -948,7 +949,6 @@ elif page == "6: Authors - Outlets":
                 # auth_counter += 1
                 st.session_state.auth_counter = auth_counter
                 st.session_state.auth_outlet_table = auth_outlet_table
-
                 st.experimental_rerun()
 
             col1, col2, col3 = st.columns([6, 1, 4])
@@ -963,7 +963,6 @@ elif page == "6: Authors - Outlets":
                         st.table(
                             auth_outlet_table[['Author', 'Outlet', 'Mentions', 'Impressions']].fillna('').sort_values(
                                 ['Impressions', 'Mentions'], ascending=False).head(15).style.format(format_dict))
-
 
                 else:
                     st.table(auth_outlet_table[['Author', 'Mentions', 'Impressions']].fillna('').head(15).style.format(
