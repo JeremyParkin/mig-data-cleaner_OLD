@@ -935,10 +935,12 @@ elif page == "6: Authors - Outlets":
             # st.write(f"Counter: {auth_outlet_skipped}")
             # st.write(f"To Do: {len(auth_outlet_todo)}")
             with st.form('auth updater', clear_on_submit=True):
+                if len(matched_authors) > 0:
+                    st.write('**DATABASE MATCHES FOUND!**')
                 col1, col2, col3 = st.columns([8, 1, 8])
                 with col1:
                     if len(matched_authors) > 0:
-                        st.write('**DATABASE MATCHES FOUND!**')
+                        # st.write('**DATABASE MATCHES FOUND!**')
                         box_outlet = st.selectbox('Pick from possible matches', possibles,
                                                   help='Pick from one of the outlets associated with this author name.')
 
@@ -947,7 +949,7 @@ elif page == "6: Authors - Outlets":
                         box_outlet = st.selectbox('Pick "Freelance" or outlet from coverage', outlets_in_coverage_list)
 
                 with col2:
-                    st.write(" ")
+                    st.subheader("OR")
                 with col3:
                     string_outlet = st.text_input("OR:  Write in the outlet name",
                                               help='Override above selection by writing in a custom name.')
