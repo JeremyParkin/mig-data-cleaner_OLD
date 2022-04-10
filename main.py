@@ -164,6 +164,12 @@ def reset_skips():
     st.session_state.auth_outlet_skipped = 0
 
 
+def name_match(series):
+    non_match = 'color: #6d5656;'
+    match = 'color: goldenrod'
+    return [non_match if cell_value != author_name else match for cell_value in series]
+
+
 format_dict = {'AVE': '${0:,.0f}', 'Audience Reach': '{:,d}', 'Impressions': '{:,d}'}
 
 if 'page' not in st.session_state:
@@ -816,7 +822,7 @@ elif page == "6: Authors - Outlets":
             with col1:
                 st.markdown("""
                                 <h2 style="color: goldenrod; padding-top:0!important; margin-top:-"> 
-                                """ + author_name.upper() +
+                                """ + author_name +
                             """</h2>
                             <style>.css-12w0qpk {padding-top:22px !important}</style>
                             """, unsafe_allow_html=True)
@@ -920,10 +926,7 @@ elif page == "6: Authors - Outlets":
                     matched_authors.loc[matched_authors.Outlet == "[Freelancer]", "Outlet"] = "Freelance"
 
 
-                    def name_match(series):
-                        non_match = 'color: #982f2f;'
-                        match = 'color: goldenrod'
-                        return [non_match if cell_value != author_name else match for cell_value in series]
+
 
                     st.table(matched_authors.style.apply(lambda x: [
                         'background: goldenrod; color: black' if v in outlets_in_coverage.Outlet.tolist() else "" for v
