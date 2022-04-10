@@ -240,6 +240,10 @@ st.sidebar.markdown("")
 st.sidebar.markdown("")
 st.sidebar.markdown("")
 st.sidebar.markdown("")
+st.write("**Quick Links**")
+st.write("[:ladybug: Bug Tracker](https://mediamiser.sharepoint.com/:x:/s/MIG/ESIF0YBKmq9EuXffFemDJKsBOuTn05Wii9ABFcj_q39A0A?e=zZ9oB2)")
+st.sidebar.markdown("")
+st.sidebar.markdown("")
 st.sidebar.caption("v.1.5.2")
 
 if page == "1: Getting Started":
@@ -894,7 +898,7 @@ elif page == "6: Authors - Outlets":
                 outlets_in_coverage_list = outlets_in_coverage_list.insert(0, "Freelance")
                 outlets_in_coverage = outlets_in_coverage.rename_axis('Outlet').reset_index(name='Matches')
 
-                st.table(outlets_in_coverage.style.apply(
+                st.dataframe(outlets_in_coverage.style.apply(
                     lambda x: ['background: goldenrod; color: black' if v in db_outlets else "" for v in x],
                     axis=1))
 
@@ -928,7 +932,7 @@ elif page == "6: Authors - Outlets":
 
 
 
-                    st.table(matched_authors.style.apply(lambda x: [
+                    st.dataframe(matched_authors.style.apply(lambda x: [
                         'background: goldenrod; color: black' if v in outlets_in_coverage.Outlet.tolist() else "" for v
                         in x], axis=1).apply(name_match, axis=0, subset='Name'))
 
