@@ -717,11 +717,18 @@ elif page == "5: Authors - Missing":
 
             with st.form('auth updater', clear_on_submit=True):
 
-                box_author = st.selectbox('Pick from possible Authors', possibles,
-                                          help='Pick from one of the authors already associated with this headline.')
+                col1, col2, col3 = st.columns([8, 1, 8])
+                with col1:
+                    box_author = st.selectbox('Pick from possible Authors', possibles,
+                                    help='Pick from one of the authors already associated with this headline.')
 
-                string_author = st.text_input("OR: Write in the author name",
-                                              help='Override above selection by writing in a custom name.')
+                with col2:
+                    st.write(" ")
+                    st.subheader("OR")
+
+                with col3:
+                    string_author = st.text_input("OR: Write in the author name",
+                                    help='Override above selection by writing in a custom name.')
 
                 if len(string_author) > 0:
                     new_author = string_author
