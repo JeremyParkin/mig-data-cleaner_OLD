@@ -920,14 +920,14 @@ elif page == "6: Authors - Outlets":
                     matched_authors.loc[matched_authors.Outlet == "[Freelancer]", "Outlet"] = "Freelance"
 
 
-                    def red_non_match(series):
-                        highlight = 'color: #982f2f;'
-                        default = ''
-                        return [highlight if cell_value != author_name else default for cell_value in series]
+                    def name_match(series):
+                        non_match = 'color: #982f2f;'
+                        match = 'color: goldenrod'
+                        return [non_match if cell_value != author_name else match for cell_value in series]
 
                     st.table(matched_authors.style.apply(lambda x: [
                         'background: goldenrod; color: black' if v in outlets_in_coverage.Outlet.tolist() else "" for v
-                        in x], axis=1).apply(red_non_match, axis=0, subset='Name'))
+                        in x], axis=1).apply(name_match, axis=0, subset='Name'))
 
                     possibles = matched_authors.Outlet
 
