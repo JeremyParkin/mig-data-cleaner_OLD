@@ -935,17 +935,21 @@ elif page == "6: Authors - Outlets":
             # st.write(f"Counter: {auth_outlet_skipped}")
             # st.write(f"To Do: {len(auth_outlet_todo)}")
             with st.form('auth updater', clear_on_submit=True):
+                col1, col2, col3 = st.columns([8, 1, 8])
+                with col1:
+                    if len(matched_authors) > 0:
+                        st.write('**DATABASE MATCHES FOUND!**')
+                        box_outlet = st.selectbox('Pick from possible matches', possibles,
+                                                  help='Pick from one of the outlets associated with this author name.')
 
-                if len(matched_authors) > 0:
-                    st.write('**DATABASE MATCHES FOUND!**')
-                    box_outlet = st.selectbox('Pick from possible matches', possibles,
-                                              help='Pick from one of the outlets associated with this author name.')
+                    else:
+                        st.write('**NO DATABASE MATCH FOUND**')
+                        box_outlet = st.selectbox('Pick "Freelance" or outlet from coverage', outlets_in_coverage_list)
 
-                else:
-                    st.write('**NO DATABASE MATCH FOUND**')
-                    box_outlet = st.selectbox('Pick "Freelance" or outlet from coverage', outlets_in_coverage_list)
-
-                string_outlet = st.text_input("OR:  Write in the outlet name",
+                with col2:
+                    st.write(" ")
+                with col3:
+                    string_outlet = st.text_input("OR:  Write in the outlet name",
                                               help='Override above selection by writing in a custom name.')
 
                 submitted = st.form_submit_button("Assign Outlet")
@@ -964,7 +968,7 @@ elif page == "6: Authors - Outlets":
                 st.session_state.auth_outlet_table = auth_outlet_table
                 st.experimental_rerun()
 
-            col1, col2, col3 = st.columns([6, 1, 4])
+            col1, col2, col3 = st.columns([8, 1, 4])
             with col1:
                 st.subheader("Top Authors")
                 if 'Outlet' in auth_outlet_table.columns:
