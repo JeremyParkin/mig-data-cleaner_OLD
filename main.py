@@ -783,6 +783,7 @@ elif page == "6: Authors - Outlets":
                     ['Impressions'], ascending=False).reset_index()
             auth_outlet_table.Outlet = ''
             auth_outlet_todo = auth_outlet_table
+            # st.write(f"")
 
         else:
             if top_auths_by == 'Mentions':
@@ -975,8 +976,8 @@ elif page == "6: Authors - Outlets":
                     st.metric(label='Assigned', value=0)
         else:
             st.write("You've reached the end of the list!")
-            st.write(auth_counter)
-            st.write(len(auth_outlet_todo))
+            st.write(f"Counter: {auth_counter}")
+            st.write(f"To Do: {len(auth_outlet_todo)}")
             if auth_counter > 0:
                 reset_counter = st.button('Reset Counter')
                 if reset_counter:
