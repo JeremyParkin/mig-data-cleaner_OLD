@@ -927,7 +927,7 @@ elif page == "6: Authors - Outlets":
 
                     st.table(matched_authors.style.apply(lambda x: [
                         'background: goldenrod; color: black' if v in outlets_in_coverage.Outlet.tolist() else "" for v
-                        in x], axis=1)).apply(red_non_match, axis=0, subset='Name'))
+                        in x], axis=1).apply(red_non_match, axis=0, subset='Name'))
 
                     possibles = matched_authors.Outlet
 
