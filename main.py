@@ -920,6 +920,8 @@ elif page == "6: Authors - Outlets":
                     possibles = matched_authors.Outlet
 
             # FORM TO UPDATE AUTHOR OUTLET ######################
+            st.write(f"Counter: {auth_counter}")
+            st.write(f"To Do: {len(auth_outlet_todo)}")
             with st.form('auth updater', clear_on_submit=True):
 
                 if len(matched_authors) > 0:
