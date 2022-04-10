@@ -768,7 +768,7 @@ elif page == "6: Authors - Outlets":
     auth_outlet_assigned = st.session_state.auth_outlet_assigned
 
     def reset_skips():
-        auth_outlet_skipped = 0
+        # auth_outlet_skipped = 0
         st.session_state.auth_outlet_skipped = 0
 
     if st.session_state.upload_step == False:
@@ -932,8 +932,8 @@ elif page == "6: Authors - Outlets":
                     possibles = matched_authors.Outlet
 
             # FORM TO UPDATE AUTHOR OUTLET ######################
-            st.write(f"Counter: {auth_outlet_skipped}")
-            st.write(f"To Do: {len(auth_outlet_todo)}")
+            # st.write(f"Counter: {auth_outlet_skipped}")
+            # st.write(f"To Do: {len(auth_outlet_todo)}")
             with st.form('auth updater', clear_on_submit=True):
 
                 if len(matched_authors) > 0:
