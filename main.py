@@ -921,7 +921,7 @@ elif page == "6: Authors - Outlets":
 
 
                     def red_non_match(series):
-                        highlight = 'background-color: tomato;'
+                        highlight = 'color: #982f2f;'
                         default = ''
                         return [highlight if cell_value != author_name else default for cell_value in series]
 
