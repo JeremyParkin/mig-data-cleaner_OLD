@@ -647,7 +647,7 @@ elif page == "4: Impressions - Fill Blanks":
 
 
 elif page == "5: Authors - Missing":
-    st.title('Authors')
+    st.title('Authors - Missing')
     traditional = st.session_state.df_traditional
     original_trad_auths = st.session_state.original_trad_auths
 
@@ -978,8 +978,10 @@ elif page == "6: Authors - Outlets":
                 st.write(" ")
             with col3:
                 st.subheader('Outlets assigned')
+
                 if 'Outlet' in auth_outlet_table.columns:
-                    st.metric(label='Assigned', value=auth_outlet_table.Outlet.count())
+                    assigned = len(auth_outlet_table.loc[auth_outlet_table['Outlet'] != ''])
+                    st.metric(label='Assigned', value=assigned)
                 else:
                     st.metric(label='Assigned', value=0)
         else:
