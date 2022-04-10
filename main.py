@@ -775,7 +775,7 @@ elif page == "6: Authors - Outlets":
     elif st.session_state.standard_step == False:
         st.error('Please run the Standard Cleaning before trying this step.')
     else:
-        top_auths_by = st.selectbox('Top Authors by: ', ['Mentions', 'Impressions'], on_change=reset_skips)
+        top_auths_by = st.selectbox('Top Authors by: ', ['Mentions', 'Impressions'], on_change='reset_skips')
         st.session_state.top_auths_by = top_auths_by
         if len(auth_outlet_table) == 0:
             if top_auths_by == 'Mentions':
