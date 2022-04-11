@@ -1070,7 +1070,7 @@ elif page == "7: Translation":
                 snippet_to_english = False
 
             if st.session_state.translated_summary == False:
-                summary_to_english = st.checkbox('Summary', value=Trues)
+                summary_to_english = st.checkbox('Summary', value=True)
             else:
                 st.success('✓ Summaries translated.')
                 summary_to_english = False
