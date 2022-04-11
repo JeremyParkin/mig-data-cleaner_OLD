@@ -589,11 +589,11 @@ elif page == "4: Impressions - Fill Blanks":
     if st.session_state.upload_step == False:
         st.error('Please upload a CSV before trying this step.')
 
-    elif len(traditional) == 0:
-        st.warning("No traditional media in data. Skip to next step.")
-
     elif st.session_state.standard_step == False:
         st.error('Please run the Standard Cleaning before trying this step.')
+
+    elif len(traditional) == 0:
+        st.warning("No traditional media in data. Skip to next step.")
 
     elif st.session_state.filled == True:
         st.success("Missing impressions fill complete!")
