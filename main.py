@@ -1055,7 +1055,7 @@ elif page == "7: Translation":
 
             if len(traditional) > 0:
                 if st.session_state.translated_headline == False:
-                    headline_to_english = st.checkbox('Headline', value=True))
+                    headline_to_english = st.checkbox('Headline', value=True)
                 else:
                     st.success('✓ Headlines translated.')
                     headline_to_english = False
@@ -1063,13 +1063,13 @@ elif page == "7: Translation":
                 headline_to_english = False
 
             if st.session_state.translated_snippet == False:
-                snippet_to_english = st.checkbox('Snippet', value=True))
+                snippet_to_english = st.checkbox('Snippet', value=True)
             else:
                 st.success('✓ Snippets translated.')
                 snippet_to_english = False
 
             if st.session_state.translated_summary == False:
-                summary_to_english = st.checkbox('Summary', value=True))
+                summary_to_english = st.checkbox('Summary', value=Trues)
             else:
                 st.success('✓ Summaries translated.')
                 summary_to_english = False
