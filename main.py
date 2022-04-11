@@ -584,7 +584,7 @@ elif page == "3: Impressions - Outliers":
 elif page == "4: Impressions - Fill Blanks":
     st.title('Impressions - Fill Blanks')
     traditional = st.session_state.df_traditional
-    blank_impressions = traditional['Impressions'].isna().sum()
+
 
     if st.session_state.upload_step == False:
         st.error('Please upload a CSV before trying this step.')
@@ -609,6 +609,8 @@ elif page == "4: Impressions - Fill Blanks":
             st.experimental_rerun()
 
     else:
+        blank_impressions = traditional['Impressions'].isna().sum()
+
         mean = "{:,}".format(int(traditional.Impressions.mean()))
         median = "{:,}".format(int(traditional.Impressions.median()))
         tercile = "{:,}".format(int(traditional.Impressions.quantile(0.33)))
