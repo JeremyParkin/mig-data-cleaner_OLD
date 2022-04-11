@@ -14,6 +14,7 @@ from unidecode import unidecode
 import requests
 from requests.structures import CaseInsensitiveDict
 
+
 warnings.filterwarnings('ignore')
 
 st.set_page_config(layout="wide", page_title="MIG Data Cleaning App",
@@ -165,7 +166,7 @@ def reset_skips():
 
 
 def name_match(series):
-    non_match = 'color: #6d5656;'
+    non_match = 'color: #985331;'
     match = 'color: goldenrod'
     return [non_match if cell_value != author_name else match for cell_value in series]
 
@@ -238,6 +239,11 @@ st.sidebar.markdown("")
 st.sidebar.markdown("")
 st.sidebar.markdown("")
 st.sidebar.markdown("")
+st.sidebar.markdown("")
+st.sidebar.markdown("")
+st.sidebar.write("**Quick Links**")
+st.sidebar.markdown("[Bug Tracker](https://mediamiser.sharepoint.com/:x:/s/MIG/ESIF0YBKmq9EuXffFemDJKsBOuTn05Wii9ABFcj_q39A0A?e=zZ9oB2)")
+st.sidebar.markdown("[GitHub Project](https://github.com/JeremyParkin/mig-data-cleaner)")
 st.sidebar.markdown("")
 st.sidebar.markdown("")
 st.sidebar.caption("v.1.5.2")
@@ -718,7 +724,7 @@ elif page == "5: Authors - Missing":
             with col2:
                 st.write(" ")
             with col3:
-                st.subheader("Possible Authors from Data")
+                st.subheader("Authors in CSV")
                 st.table(headline_authors(traditional, headline_text).rename(columns={'index': 'Possible Author(s)',
                                                                                   'Author': 'Matches'}))
 
@@ -888,13 +894,13 @@ elif page == "6: Authors - Outlets":
 
             col1, col2, col3 = st.columns([8, 1, 16])
             with col1:
-                st.subheader("Outlets in Coverage")  #########################################
+                st.subheader("Outlets in CSV")  #########################################
                 outlets_in_coverage = traditional.loc[traditional.Author == author_name].Outlet.value_counts()
                 outlets_in_coverage_list = outlets_in_coverage.index
                 outlets_in_coverage_list = outlets_in_coverage_list.insert(0, "Freelance")
                 outlets_in_coverage = outlets_in_coverage.rename_axis('Outlet').reset_index(name='Matches')
 
-                st.table(outlets_in_coverage.style.apply(
+                st.dataframe(outlets_in_coverage.style.apply(
                     lambda x: ['background: goldenrod; color: black' if v in db_outlets else "" for v in x],
                     axis=1))
 
@@ -950,7 +956,7 @@ elif page == "6: Authors - Outlets":
                     st.write(" ")
                     st.subheader("OR")
                 with col3:
-                    string_outlet = st.text_input("Write in the outlet name",
+                    string_outlet = st.text_input("Write in an outlet name",
                                               help='Override above selection by writing in a custom name.')
 
                 submitted = st.form_submit_button("Assign Outlet")
@@ -1050,7 +1056,7 @@ elif page == "7: Translation":
 
             if len(traditional) > 0:
                 if st.session_state.translated_headline == False:
-                    headline_to_english = st.checkbox('Headline')
+                    headline_to_english = st.checkbox('Headline', value=True)
                 else:
                     st.success('✓ Headlines translated.')
                     headline_to_english = False
@@ -1058,13 +1064,13 @@ elif page == "7: Translation":
                 headline_to_english = False
 
             if st.session_state.translated_snippet == False:
-                snippet_to_english = st.checkbox('Snippet')
+                snippet_to_english = st.checkbox('Snippet', value=True)
             else:
                 st.success('✓ Snippets translated.')
                 snippet_to_english = False
 
             if st.session_state.translated_summary == False:
-                summary_to_english = st.checkbox('Summary')
+                summary_to_english = st.checkbox('Summary', value=Trues)
             else:
                 st.success('✓ Summaries translated.')
                 summary_to_english = False
