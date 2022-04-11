@@ -166,7 +166,7 @@ def reset_skips():
 
 
 def name_match(series):
-    non_match = 'color: #6d5656;'
+    non_match = 'color: #985331;'
     match = 'color: goldenrod'
     return [non_match if cell_value != author_name else match for cell_value in series]
 
@@ -243,6 +243,7 @@ st.sidebar.markdown("")
 st.sidebar.markdown("")
 st.sidebar.write("**Quick Links**")
 st.sidebar.markdown("[Bug Tracker](https://mediamiser.sharepoint.com/:x:/s/MIG/ESIF0YBKmq9EuXffFemDJKsBOuTn05Wii9ABFcj_q39A0A?e=zZ9oB2)")
+st.sidebar.markdown("[GitHub Project](https://github.com/JeremyParkin/mig-data-cleaner)")
 st.sidebar.markdown("")
 st.sidebar.markdown("")
 st.sidebar.caption("v.1.5.2")
@@ -893,7 +894,7 @@ elif page == "6: Authors - Outlets":
 
             col1, col2, col3 = st.columns([8, 1, 16])
             with col1:
-                st.subheader("Outlets in Coverage")  #########################################
+                st.subheader("Outlets in CSV")  #########################################
                 outlets_in_coverage = traditional.loc[traditional.Author == author_name].Outlet.value_counts()
                 outlets_in_coverage_list = outlets_in_coverage.index
                 outlets_in_coverage_list = outlets_in_coverage_list.insert(0, "Freelance")
@@ -955,7 +956,7 @@ elif page == "6: Authors - Outlets":
                     st.write(" ")
                     st.subheader("OR")
                 with col3:
-                    string_outlet = st.text_input("Write in the outlet name",
+                    string_outlet = st.text_input("Write in an outlet name",
                                               help='Override above selection by writing in a custom name.')
 
                 submitted = st.form_submit_button("Assign Outlet")
