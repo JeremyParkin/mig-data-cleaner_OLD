@@ -723,7 +723,7 @@ elif page == "5: Authors - Missing":
             with col2:
                 st.write(" ")
             with col3:
-                st.subheader("Possible Authors from Data")
+                st.subheader("Authors in CSV")
                 st.table(headline_authors(traditional, headline_text).rename(columns={'index': 'Possible Author(s)',
                                                                                   'Author': 'Matches'}))
 
@@ -901,7 +901,7 @@ elif page == "6: Authors - Outlets":
 
                 st.dataframe(outlets_in_coverage.style.apply(
                     lambda x: ['background: goldenrod; color: black' if v in db_outlets else "" for v in x],
-                    axis=1).hide(axis="index"))
+                    axis=1))
 
             with col2:
                 st.write(" ")
