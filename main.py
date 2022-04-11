@@ -1243,7 +1243,8 @@ elif page == "9: Download":
 
                     traditional = traditional.sort_values(by=['Impressions'], ascending=False)
                     social = social.sort_values(by=['Impressions'], ascending=False)
-                    authors = auth_outlet_table.sort_values(by=['Mentions', 'Impressions'], ascending=False)
+                    if len(auth_outlet_table) > 0:
+                        authors = auth_outlet_table.sort_values(by=['Mentions', 'Impressions'], ascending=False)
 
                     output = io.BytesIO()
                     writer = pd.ExcelWriter(output, engine='xlsxwriter', datetime_format='yyyy-mm-dd',
@@ -1252,7 +1253,8 @@ elif page == "9: Download":
                     # Write the dataframe data to XlsxWriter.
                     traditional.to_excel(writer, sheet_name='CLEAN TRAD', startrow=1, header=False, index=False)
                     social.to_excel(writer, sheet_name='CLEAN SOCIAL', startrow=1, header=False, index=False)
-                    authors.to_excel(writer, sheet_name='Authors', header=True, index=False)
+                    if len(authors) > 0:
+                        authors.to_excel(writer, sheet_name='Authors', header=True, index=False)
                     dupes.to_excel(writer, sheet_name='DLTD DUPES', header=True, index=False)
                     uncleaned.to_excel(writer, sheet_name='RAW', header=True, index=False)
 
@@ -1262,13 +1264,15 @@ elif page == "9: Download":
                     worksheet2 = writer.sheets['CLEAN SOCIAL']
                     worksheet3 = writer.sheets['DLTD DUPES']
                     worksheet4 = writer.sheets['RAW']
-                    worksheet5 = writer.sheets['Authors']
+                    if len(authors) > 0:
+                        worksheet5 = writer.sheets['Authors']
 
                     worksheet1.set_tab_color('black')
                     worksheet2.set_tab_color('black')
                     worksheet3.set_tab_color('#c26f4f')
                     worksheet4.set_tab_color('#c26f4f')
-                    worksheet5.set_tab_color('green')
+                    if len(authors) > 0:
+                        worksheet5.set_tab_color('green')
 
                     # make a list of df/worksheet tuples
                     cleaned_dfs = [(traditional, worksheet1), (social, worksheet2), (dupes, worksheet3)]
