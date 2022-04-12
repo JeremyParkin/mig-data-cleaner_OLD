@@ -240,14 +240,14 @@ st.sidebar.markdown("")
 st.sidebar.markdown("")
 st.sidebar.markdown("")
 st.sidebar.markdown("")
-st.sidebar.markdown("")
 st.sidebar.write("**Quick Links**")
-st.sidebar.markdown("[Bug Tracker](https://mediamiser.sharepoint.com/:x:/s/MIG/ESIF0YBKmq9EuXffFemDJKsBOuTn05Wii9ABFcj_q39A0A?e=zZ9oB2)")
-st.sidebar.markdown("[Quickstart Guide](https://github.com/JeremyParkin/mig-data-cleaner/blob/main/README.md)")
-st.sidebar.markdown("[GitHub Project](https://github.com/JeremyParkin/mig-data-cleaner)")
-st.sidebar.markdown("")
-st.sidebar.markdown("")
-st.sidebar.caption("v.1.5.2")
+st.sidebar.markdown("""
+    [Bug Tracker](https://mediamiser.sharepoint.com/:x:/s/MIG/ESIF0YBKmq9EuXffFemDJKsBOuTn05Wii9ABFcj_q39A0A?e=zZ9oB2) \n
+    [Quickstart Guide](https://github.com/JeremyParkin/mig-data-cleaner/blob/main/README.md) \n
+    [GitHub Project](https://github.com/JeremyParkin/mig-data-cleaner) 
+    """)
+st.sidebar.caption("v.1.5.2.1")
+
 
 if page == "1: Getting Started":
     st.title('Getting Started')
@@ -554,10 +554,12 @@ elif page == "3: Impressions - Outliers":
     st.title('Impressions - Outliers')
     if st.session_state.upload_step == False:
         st.error('Please upload a CSV before trying this step.')
-    elif len(traditional) == 0:
-        st.subheader("No traditional media in data. Skip to next step.")
+
     elif st.session_state.standard_step == False:
         st.error('Please run the Standard Cleaning before trying this step.')
+    elif len(traditional) == 0:
+        st.subheader("No traditional media in data. Skip to next step.")
+
     else:
         st.subheader('Check highest impressions numbers:')
         outliers = traditional[['Outlet', 'Type', 'Impressions', 'Headline', 'URL', 'Country']].nlargest(100,
@@ -598,8 +600,7 @@ elif page == "4: Impressions - Fill Blanks":
     elif st.session_state.filled == True:
         st.success("Missing impressions fill complete!")
 
-    elif blank_impressions == 0:
-        st.info('No missing impressions numbers in data')
+
 
     elif st.session_state.outliers == False:
         st.warning('Please confirm outliers step is complete before running this step.')
@@ -611,53 +612,58 @@ elif page == "4: Impressions - Fill Blanks":
     else:
         blank_impressions = traditional['Impressions'].isna().sum()
 
-        mean = "{:,}".format(int(traditional.Impressions.mean()))
-        median = "{:,}".format(int(traditional.Impressions.median()))
-        tercile = "{:,}".format(int(traditional.Impressions.quantile(0.33)))
-        quartile = "{:,}".format(int(traditional.Impressions.quantile(0.25)))
-        twentieth_percentile = "{:,}".format(int(traditional.Impressions.quantile(0.2)))
-        eighteenth_percentile = "{:,}".format(int(traditional.Impressions.quantile(0.18)))
-        seventeenth_percentile = "{:,}".format(int(traditional.Impressions.quantile(0.17)))
-        fifteenth_percentile = "{:,}".format(int(traditional.Impressions.quantile(0.15)))
-        decile = "{:,}".format(int(traditional.Impressions.quantile(0.1)))
+        if blank_impressions == 0:
+            st.info('No missing impressions numbers in data')
 
-        st.markdown(f"#### MISSING: {blank_impressions}")
-        st.write("*************")
+        else:
 
-        col1, col2 = st.columns(2)
-        with col1:
+            mean = "{:,}".format(int(traditional.Impressions.mean()))
+            median = "{:,}".format(int(traditional.Impressions.median()))
+            tercile = "{:,}".format(int(traditional.Impressions.quantile(0.33)))
+            quartile = "{:,}".format(int(traditional.Impressions.quantile(0.25)))
+            twentieth_percentile = "{:,}".format(int(traditional.Impressions.quantile(0.2)))
+            eighteenth_percentile = "{:,}".format(int(traditional.Impressions.quantile(0.18)))
+            seventeenth_percentile = "{:,}".format(int(traditional.Impressions.quantile(0.17)))
+            fifteenth_percentile = "{:,}".format(int(traditional.Impressions.quantile(0.15)))
+            decile = "{:,}".format(int(traditional.Impressions.quantile(0.1)))
 
-            st.write(f"Average: {mean}")
-            st.write(f"Median: {median}")
-            st.write(f"Tercile: {tercile}")
-            st.write(f"Quartile: {quartile}")
-            st.write(f"20th Percentile: {twentieth_percentile}")
-            st.write(f"18th Percentile: {eighteenth_percentile}")
-            st.write(f"17th Percentile: {seventeenth_percentile}")
-            st.write(f"15th Percentile: {fifteenth_percentile}")
-            st.write(f"Decile: {decile}")
+            st.markdown(f"#### MISSING: {blank_impressions}")
+            st.write("*************")
 
-        with col2:
-            filldict = {
-                'Tercile': int(traditional.Impressions.quantile(0.33)),
-                'Quartile': int(traditional.Impressions.quantile(0.25)),
-                '20th percentile': int(traditional.Impressions.quantile(0.2)),
-                '18th percentile': int(traditional.Impressions.quantile(0.18)),
-                '17th percentile': int(traditional.Impressions.quantile(0.17)),
-                '15th percentile': int(traditional.Impressions.quantile(0.15)),
-                'Decile': int(traditional.Impressions.quantile(0.1))
-            }
-            with st.form('Fill Blanks'):
-                st.subheader("Fill Blank Impressions")
-                fill_blank_impressions_with = st.radio('Pick your statistical fill value: ', filldict.keys(), index=5)
-                submitted = st.form_submit_button("Fill Blanks")
-                if submitted:
-                    traditional[['Impressions']] = traditional[['Impressions']].fillna(
-                        filldict[fill_blank_impressions_with])
-                    traditional['Impressions'] = traditional['Impressions'].astype(int)
-                    st.session_state.df_traditional = traditional
-                    st.session_state.filled = True
-                    st.experimental_rerun()
+            col1, col2 = st.columns(2)
+            with col1:
+
+                st.write(f"Average: {mean}")
+                st.write(f"Median: {median}")
+                st.write(f"Tercile: {tercile}")
+                st.write(f"Quartile: {quartile}")
+                st.write(f"20th Percentile: {twentieth_percentile}")
+                st.write(f"18th Percentile: {eighteenth_percentile}")
+                st.write(f"17th Percentile: {seventeenth_percentile}")
+                st.write(f"15th Percentile: {fifteenth_percentile}")
+                st.write(f"Decile: {decile}")
+
+            with col2:
+                filldict = {
+                    'Tercile': int(traditional.Impressions.quantile(0.33)),
+                    'Quartile': int(traditional.Impressions.quantile(0.25)),
+                    '20th percentile': int(traditional.Impressions.quantile(0.2)),
+                    '18th percentile': int(traditional.Impressions.quantile(0.18)),
+                    '17th percentile': int(traditional.Impressions.quantile(0.17)),
+                    '15th percentile': int(traditional.Impressions.quantile(0.15)),
+                    'Decile': int(traditional.Impressions.quantile(0.1))
+                }
+                with st.form('Fill Blanks'):
+                    st.subheader("Fill Blank Impressions")
+                    fill_blank_impressions_with = st.radio('Pick your statistical fill value: ', filldict.keys(), index=5)
+                    submitted = st.form_submit_button("Fill Blanks")
+                    if submitted:
+                        traditional[['Impressions']] = traditional[['Impressions']].fillna(
+                            filldict[fill_blank_impressions_with])
+                        traditional['Impressions'] = traditional['Impressions'].astype(int)
+                        st.session_state.df_traditional = traditional
+                        st.session_state.filled = True
+                        st.experimental_rerun()
 
 
 
@@ -668,10 +674,12 @@ elif page == "5: Authors - Missing":
 
     if st.session_state.upload_step == False:
         st.error('Please upload a CSV before trying this step.')
-    elif len(traditional) == 0:
-        st.subheader("No traditional media in data. Skip to next step.")
+
     elif st.session_state.standard_step == False:
         st.error('Please run the Standard Cleaning before trying this step.')
+    elif len(traditional) == 0:
+        st.subheader("No traditional media in data. Skip to next step.")
+
     else:
         counter = st.session_state.counter
         original_top_authors = st.session_state.original_auths
@@ -1219,18 +1227,18 @@ elif page == "8: Review":
 
 
 elif page == "9: Download":
-    # TODO: ONLY INCLUDE CLEAN SHEETS FOR data sets that exist
     st.title('Download')
     if st.session_state.upload_step == False:
         st.error('Please upload a CSV before trying this step.')
     elif st.session_state.standard_step == False:
         st.error('Please run the Standard Cleaning before trying this step.')
     else:
+        export_name = st.session_state.export_name
+
         traditional = st.session_state.df_traditional
         social = st.session_state.df_social
         dupes = st.session_state.df_dupes
         uncleaned = st.session_state.df_uncleaned
-        export_name = st.session_state.export_name
         auth_outlet_table = st.session_state.auth_outlet_table
 
         traditional['Date'] = pd.to_datetime(traditional['Date'])
@@ -1243,49 +1251,58 @@ elif page == "9: Download":
             if submitted:
                 with st.spinner('Building workbook now...'):
 
-                    traditional = traditional.sort_values(by=['Impressions'], ascending=False)
-                    social = social.sort_values(by=['Impressions'], ascending=False)
-                    if len(auth_outlet_table) > 0:
-                        authors = auth_outlet_table.sort_values(by=['Mentions', 'Impressions'], ascending=False)
+                    #############################################
 
                     output = io.BytesIO()
                     writer = pd.ExcelWriter(output, engine='xlsxwriter', datetime_format='yyyy-mm-dd',
                                             options={'in_memory': True})
-
-                    # Write the dataframe data to XlsxWriter.
-                    traditional.to_excel(writer, sheet_name='CLEAN TRAD', startrow=1, header=False, index=False)
-                    social.to_excel(writer, sheet_name='CLEAN SOCIAL', startrow=1, header=False, index=False)
-                    if len(auth_outlet_table) > 0:
-                        authors.to_excel(writer, sheet_name='Authors', header=True, index=False)
-                    dupes.to_excel(writer, sheet_name='DLTD DUPES', header=True, index=False)
-                    uncleaned.to_excel(writer, sheet_name='RAW', header=True, index=False)
-
-                    # Get the xlsxwriter workbook and worksheet objects.
                     workbook = writer.book
-                    worksheet1 = writer.sheets['CLEAN TRAD']
-                    worksheet2 = writer.sheets['CLEAN SOCIAL']
-                    worksheet3 = writer.sheets['DLTD DUPES']
-                    worksheet4 = writer.sheets['RAW']
-                    if len(auth_outlet_table) > 0:
-                        worksheet5 = writer.sheets['Authors']
+                    cleaned_dfs = []
+                    cleaned_sheets = []
 
-                    worksheet1.set_tab_color('black')
-                    worksheet2.set_tab_color('black')
-                    worksheet3.set_tab_color('#c26f4f')
-                    worksheet4.set_tab_color('#c26f4f')
+                    if len(traditional) > 0:
+                        traditional = traditional.sort_values(by=['Impressions'], ascending=False)
+                        traditional.to_excel(writer, sheet_name='CLEAN TRAD', startrow=1, header=False, index=False)
+                        worksheet1 = writer.sheets['CLEAN TRAD']
+                        worksheet1.set_tab_color('black')
+                        cleaned_dfs.append((traditional, worksheet1))
+                        cleaned_sheets.append(worksheet1)
+
+
+                    if len(social) > 0:
+                        social = social.sort_values(by=['Impressions'], ascending=False)
+                        social.to_excel(writer, sheet_name='CLEAN SOCIAL', startrow=1, header=False, index=False)
+                        worksheet2 = writer.sheets['CLEAN SOCIAL']
+                        worksheet2.set_tab_color('black')
+                        cleaned_dfs.append((social, worksheet2))
+                        cleaned_sheets.append(worksheet2)
+
+
                     if len(auth_outlet_table) > 0:
+                        authors = auth_outlet_table.sort_values(by=['Mentions', 'Impressions'], ascending=False)
+                        authors.to_excel(writer, sheet_name='Authors', header=True, index=False)
+                        worksheet5 = writer.sheets['Authors']
                         worksheet5.set_tab_color('green')
 
-                    # make a list of df/worksheet tuples
-                    cleaned_dfs = [(traditional, worksheet1), (social, worksheet2), (dupes, worksheet3)]
+
+                    if len(dupes) > 0:
+                        dupes.to_excel(writer, sheet_name='DLTD DUPES', header=True, index=False)
+                        worksheet3 = writer.sheets['DLTD DUPES']
+                        worksheet3.set_tab_color('#c26f4f')
+                        cleaned_dfs.append((dupes, worksheet3))
+                        cleaned_sheets.append(worksheet3)
+
+
+                    uncleaned.to_excel(writer, sheet_name='RAW', header=True, index=False)
+                    worksheet4 = writer.sheets['RAW']
+                    worksheet4.set_tab_color('#c26f4f')
+
 
                     for clean_df in cleaned_dfs:
                         (max_row, max_col) = clean_df[0].shape
                         column_settings = [{'header': column} for column in clean_df[0].columns]
                         clean_df[1].add_table(0, 0, max_row, max_col - 1, {'columns': column_settings})
 
-                    # make a list of cleaned worksheets
-                    cleaned_sheets = [worksheet1, worksheet2, worksheet3]
 
                     # Add some cell formats.
                     number_format = workbook.add_format({'num_format': '#,##0'})
@@ -1307,6 +1324,75 @@ elif page == "9: Download":
                         sheet.set_column('R:R', 12, currency_format)  # AVE
                         sheet.freeze_panes(1, 0)
                     writer.save()
+
+
+
+                    ########################################
+
+                    # traditional = traditional.sort_values(by=['Impressions'], ascending=False)
+                    # social = social.sort_values(by=['Impressions'], ascending=False)
+                    # if len(auth_outlet_table) > 0:
+                    #     authors = auth_outlet_table.sort_values(by=['Mentions', 'Impressions'], ascending=False)
+                    #
+                    # output = io.BytesIO()
+                    # writer = pd.ExcelWriter(output, engine='xlsxwriter', datetime_format='yyyy-mm-dd',
+                    #                         options={'in_memory': True})
+                    #
+                    # # Write the dataframe data to XlsxWriter.
+                    # traditional.to_excel(writer, sheet_name='CLEAN TRAD', startrow=1, header=False, index=False)
+                    # social.to_excel(writer, sheet_name='CLEAN SOCIAL', startrow=1, header=False, index=False)
+                    # if len(auth_outlet_table) > 0:
+                    #     authors.to_excel(writer, sheet_name='Authors', header=True, index=False)
+                    # dupes.to_excel(writer, sheet_name='DLTD DUPES', header=True, index=False)
+                    # uncleaned.to_excel(writer, sheet_name='RAW', header=True, index=False)
+                    #
+                    # # Get the xlsxwriter workbook and worksheet objects.
+                    # workbook = writer.book
+                    # worksheet1 = writer.sheets['CLEAN TRAD']
+                    # worksheet2 = writer.sheets['CLEAN SOCIAL']
+                    # worksheet3 = writer.sheets['DLTD DUPES']
+                    # worksheet4 = writer.sheets['RAW']
+                    # if len(auth_outlet_table) > 0:
+                    #     worksheet5 = writer.sheets['Authors']
+                    #
+                    # worksheet1.set_tab_color('black')
+                    # worksheet2.set_tab_color('black')
+                    # worksheet3.set_tab_color('#c26f4f')
+                    # worksheet4.set_tab_color('#c26f4f')
+                    # if len(auth_outlet_table) > 0:
+                    #     worksheet5.set_tab_color('green')
+                    #
+                    # # make a list of df/worksheet tuples
+                    # cleaned_dfs = [(traditional, worksheet1), (social, worksheet2), (dupes, worksheet3)]
+                    #
+                    # for clean_df in cleaned_dfs:
+                    #     (max_row, max_col) = clean_df[0].shape
+                    #     column_settings = [{'header': column} for column in clean_df[0].columns]
+                    #     clean_df[1].add_table(0, 0, max_row, max_col - 1, {'columns': column_settings})
+                    #
+                    # # make a list of cleaned worksheets
+                    # cleaned_sheets = [worksheet1, worksheet2, worksheet3]
+                    #
+                    # # Add some cell formats.
+                    # number_format = workbook.add_format({'num_format': '#,##0'})
+                    # currency_format = workbook.add_format({'num_format': '$#,##0'})
+                    # # date_format = workbook.add_format({'num_format': 'yyyy-mm-dd'})
+                    # time_format = workbook.add_format({'num_format': 'hh:mm:ss'})
+                    #
+                    # # Add the Excel table structure. Pandas will add the data.
+                    # for sheet in cleaned_sheets:
+                    #     sheet.set_default_row(22)
+                    #     sheet.set_column('A:A', 12, None)  # date
+                    #     sheet.set_column('B:B', 10, time_format)  # time
+                    #     sheet.set_column('C:C', 22, None)  # outlet
+                    #     sheet.set_column('D:D', 12, None)  # type
+                    #     sheet.set_column('E:E', 12, None)  # author
+                    #     sheet.set_column('F:F', 0, None)  # mentions
+                    #     sheet.set_column('G:G', 12, number_format)  # impressions
+                    #     sheet.set_column('H:H', 40, None)  # headline
+                    #     sheet.set_column('R:R', 12, currency_format)  # AVE
+                    #     sheet.freeze_panes(1, 0)
+                    # writer.save()
 
         if submitted:
             st.download_button('Download', output, file_name=export_name)
