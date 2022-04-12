@@ -242,11 +242,11 @@ st.sidebar.markdown("")
 st.sidebar.markdown("")
 st.sidebar.write("**Quick Links**")
 st.sidebar.markdown("""
-    [Bug Tracker](https://mediamiser.sharepoint.com/:x:/s/MIG/ESIF0YBKmq9EuXffFemDJKsBOuTn05Wii9ABFcj_q39A0A?e=zZ9oB2) \n
-    [Quickstart Guide](https://github.com/JeremyParkin/mig-data-cleaner/blob/main/README.md) \n
+    [Bug Tracker](https://mediamiser.sharepoint.com/:x:/s/MIG/ESIF0YBKmq9EuXffFemDJKsBOuTn05Wii9ABFcj_q39A0A?e=zZ9oB2)
+    [Quickstart Guide](https://github.com/JeremyParkin/mig-data-cleaner/blob/main/README.md)
     [GitHub Project](https://github.com/JeremyParkin/mig-data-cleaner) 
     """)
-st.sidebar.caption("v.1.5.2")
+st.sidebar.caption("v.1.5.2.1")
 
 
 if page == "1: Getting Started":
@@ -679,7 +679,7 @@ elif page == "5: Authors - Missing":
         st.error('Please run the Standard Cleaning before trying this step.')
     elif len(traditional) == 0:
         st.subheader("No traditional media in data. Skip to next step.")
-        
+
     else:
         counter = st.session_state.counter
         original_top_authors = st.session_state.original_auths
