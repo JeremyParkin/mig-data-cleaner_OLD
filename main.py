@@ -243,9 +243,9 @@ st.sidebar.markdown("")
 st.sidebar.markdown("")
 st.sidebar.write("**Quick Links**")
 st.sidebar.markdown("""
-    [Bug Tracker](https://mediamiser.sharepoint.com/:x:/s/MIG/ESIF0YBKmq9EuXffFemDJKsBOuTn05Wii9ABFcj_q39A0A?e=zZ9oB2)
-    [Quickstart Guide](https://github.com/JeremyParkin/mig-data-cleaner/blob/main/README.md)
-    [GitHub Project](https://github.com/JeremyParkin/mig-data-cleaner)
+    [Bug Tracker](https://mediamiser.sharepoint.com/:x:/s/MIG/ESIF0YBKmq9EuXffFemDJKsBOuTn05Wii9ABFcj_q39A0A?e=zZ9oB2) \n
+    [Quickstart Guide](https://github.com/JeremyParkin/mig-data-cleaner/blob/main/README.md) \n
+    [GitHub Project](https://github.com/JeremyParkin/mig-data-cleaner) 
     """)
 st.sidebar.markdown("")
 st.sidebar.markdown("")
