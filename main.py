@@ -242,9 +242,11 @@ st.sidebar.markdown("")
 st.sidebar.markdown("")
 st.sidebar.markdown("")
 st.sidebar.write("**Quick Links**")
-st.sidebar.markdown("[Bug Tracker](https://mediamiser.sharepoint.com/:x:/s/MIG/ESIF0YBKmq9EuXffFemDJKsBOuTn05Wii9ABFcj_q39A0A?e=zZ9oB2)")
-st.sidebar.markdown("[Quickstart Guide](https://github.com/JeremyParkin/mig-data-cleaner/blob/main/README.md)")
-st.sidebar.markdown("[GitHub Project](https://github.com/JeremyParkin/mig-data-cleaner)")
+st.sidebar.markdown("""
+    [Bug Tracker](https://mediamiser.sharepoint.com/:x:/s/MIG/ESIF0YBKmq9EuXffFemDJKsBOuTn05Wii9ABFcj_q39A0A?e=zZ9oB2)
+    [Quickstart Guide](https://github.com/JeremyParkin/mig-data-cleaner/blob/main/README.md)
+    [GitHub Project](https://github.com/JeremyParkin/mig-data-cleaner)
+    """)
 st.sidebar.markdown("")
 st.sidebar.markdown("")
 st.sidebar.caption("v.1.5.2")
@@ -1223,7 +1225,6 @@ elif page == "8: Review":
 
 
 elif page == "9: Download":
-    # TODO: ONLY INCLUDE CLEAN SHEETS FOR data sets that exist
     st.title('Download')
     if st.session_state.upload_step == False:
         st.error('Please upload a CSV before trying this step.')
