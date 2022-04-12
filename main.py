@@ -554,10 +554,12 @@ elif page == "3: Impressions - Outliers":
     st.title('Impressions - Outliers')
     if st.session_state.upload_step == False:
         st.error('Please upload a CSV before trying this step.')
-    elif len(traditional) == 0:
-        st.subheader("No traditional media in data. Skip to next step.")
+
     elif st.session_state.standard_step == False:
         st.error('Please run the Standard Cleaning before trying this step.')
+    elif len(traditional) == 0:
+        st.subheader("No traditional media in data. Skip to next step.")
+
     else:
         st.subheader('Check highest impressions numbers:')
         outliers = traditional[['Outlet', 'Type', 'Impressions', 'Headline', 'URL', 'Country']].nlargest(100,
@@ -672,10 +674,12 @@ elif page == "5: Authors - Missing":
 
     if st.session_state.upload_step == False:
         st.error('Please upload a CSV before trying this step.')
-    elif len(traditional) == 0:
-        st.subheader("No traditional media in data. Skip to next step.")
+
     elif st.session_state.standard_step == False:
         st.error('Please run the Standard Cleaning before trying this step.')
+    elif len(traditional) == 0:
+        st.subheader("No traditional media in data. Skip to next step.")
+        
     else:
         counter = st.session_state.counter
         original_top_authors = st.session_state.original_auths
