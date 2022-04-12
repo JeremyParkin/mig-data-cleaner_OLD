@@ -248,7 +248,6 @@ st.sidebar.markdown("""
     [GitHub Project](https://github.com/JeremyParkin/mig-data-cleaner) 
     """)
 st.sidebar.markdown("")
-st.sidebar.markdown("")
 st.sidebar.caption("v.1.5.2")
 
 if page == "1: Getting Started":
