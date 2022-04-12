@@ -1251,8 +1251,6 @@ elif page == "9: Download":
             if submitted:
                 with st.spinner('Building workbook now...'):
 
-                    #############################################
-
                     output = io.BytesIO()
                     writer = pd.ExcelWriter(output, engine='xlsxwriter', datetime_format='yyyy-mm-dd',
                                             options={'in_memory': True})
@@ -1268,7 +1266,6 @@ elif page == "9: Download":
                         cleaned_dfs.append((traditional, worksheet1))
                         cleaned_sheets.append(worksheet1)
 
-
                     if len(social) > 0:
                         social = social.sort_values(by=['Impressions'], ascending=False)
                         social.to_excel(writer, sheet_name='CLEAN SOCIAL', startrow=1, header=False, index=False)
@@ -1277,13 +1274,11 @@ elif page == "9: Download":
                         cleaned_dfs.append((social, worksheet2))
                         cleaned_sheets.append(worksheet2)
 
-
                     if len(auth_outlet_table) > 0:
                         authors = auth_outlet_table.sort_values(by=['Mentions', 'Impressions'], ascending=False)
                         authors.to_excel(writer, sheet_name='Authors', header=True, index=False)
                         worksheet5 = writer.sheets['Authors']
                         worksheet5.set_tab_color('green')
-
 
                     if len(dupes) > 0:
                         dupes.to_excel(writer, sheet_name='DLTD DUPES', header=True, index=False)
@@ -1292,17 +1287,14 @@ elif page == "9: Download":
                         cleaned_dfs.append((dupes, worksheet3))
                         cleaned_sheets.append(worksheet3)
 
-
                     uncleaned.to_excel(writer, sheet_name='RAW', header=True, index=False)
                     worksheet4 = writer.sheets['RAW']
                     worksheet4.set_tab_color('#c26f4f')
-
 
                     for clean_df in cleaned_dfs:
                         (max_row, max_col) = clean_df[0].shape
                         column_settings = [{'header': column} for column in clean_df[0].columns]
                         clean_df[1].add_table(0, 0, max_row, max_col - 1, {'columns': column_settings})
-
 
                     # Add some cell formats.
                     number_format = workbook.add_format({'num_format': '#,##0'})
@@ -1324,75 +1316,6 @@ elif page == "9: Download":
                         sheet.set_column('R:R', 12, currency_format)  # AVE
                         sheet.freeze_panes(1, 0)
                     writer.save()
-
-
-
-                    ########################################
-
-                    # traditional = traditional.sort_values(by=['Impressions'], ascending=False)
-                    # social = social.sort_values(by=['Impressions'], ascending=False)
-                    # if len(auth_outlet_table) > 0:
-                    #     authors = auth_outlet_table.sort_values(by=['Mentions', 'Impressions'], ascending=False)
-                    #
-                    # output = io.BytesIO()
-                    # writer = pd.ExcelWriter(output, engine='xlsxwriter', datetime_format='yyyy-mm-dd',
-                    #                         options={'in_memory': True})
-                    #
-                    # # Write the dataframe data to XlsxWriter.
-                    # traditional.to_excel(writer, sheet_name='CLEAN TRAD', startrow=1, header=False, index=False)
-                    # social.to_excel(writer, sheet_name='CLEAN SOCIAL', startrow=1, header=False, index=False)
-                    # if len(auth_outlet_table) > 0:
-                    #     authors.to_excel(writer, sheet_name='Authors', header=True, index=False)
-                    # dupes.to_excel(writer, sheet_name='DLTD DUPES', header=True, index=False)
-                    # uncleaned.to_excel(writer, sheet_name='RAW', header=True, index=False)
-                    #
-                    # # Get the xlsxwriter workbook and worksheet objects.
-                    # workbook = writer.book
-                    # worksheet1 = writer.sheets['CLEAN TRAD']
-                    # worksheet2 = writer.sheets['CLEAN SOCIAL']
-                    # worksheet3 = writer.sheets['DLTD DUPES']
-                    # worksheet4 = writer.sheets['RAW']
-                    # if len(auth_outlet_table) > 0:
-                    #     worksheet5 = writer.sheets['Authors']
-                    #
-                    # worksheet1.set_tab_color('black')
-                    # worksheet2.set_tab_color('black')
-                    # worksheet3.set_tab_color('#c26f4f')
-                    # worksheet4.set_tab_color('#c26f4f')
-                    # if len(auth_outlet_table) > 0:
-                    #     worksheet5.set_tab_color('green')
-                    #
-                    # # make a list of df/worksheet tuples
-                    # cleaned_dfs = [(traditional, worksheet1), (social, worksheet2), (dupes, worksheet3)]
-                    #
-                    # for clean_df in cleaned_dfs:
-                    #     (max_row, max_col) = clean_df[0].shape
-                    #     column_settings = [{'header': column} for column in clean_df[0].columns]
-                    #     clean_df[1].add_table(0, 0, max_row, max_col - 1, {'columns': column_settings})
-                    #
-                    # # make a list of cleaned worksheets
-                    # cleaned_sheets = [worksheet1, worksheet2, worksheet3]
-                    #
-                    # # Add some cell formats.
-                    # number_format = workbook.add_format({'num_format': '#,##0'})
-                    # currency_format = workbook.add_format({'num_format': '$#,##0'})
-                    # # date_format = workbook.add_format({'num_format': 'yyyy-mm-dd'})
-                    # time_format = workbook.add_format({'num_format': 'hh:mm:ss'})
-                    #
-                    # # Add the Excel table structure. Pandas will add the data.
-                    # for sheet in cleaned_sheets:
-                    #     sheet.set_default_row(22)
-                    #     sheet.set_column('A:A', 12, None)  # date
-                    #     sheet.set_column('B:B', 10, time_format)  # time
-                    #     sheet.set_column('C:C', 22, None)  # outlet
-                    #     sheet.set_column('D:D', 12, None)  # type
-                    #     sheet.set_column('E:E', 12, None)  # author
-                    #     sheet.set_column('F:F', 0, None)  # mentions
-                    #     sheet.set_column('G:G', 12, number_format)  # impressions
-                    #     sheet.set_column('H:H', 40, None)  # headline
-                    #     sheet.set_column('R:R', 12, currency_format)  # AVE
-                    #     sheet.freeze_panes(1, 0)
-                    # writer.save()
 
         if submitted:
             st.download_button('Download', output, file_name=export_name)
