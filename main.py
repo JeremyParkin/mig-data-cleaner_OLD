@@ -848,7 +848,7 @@ elif page == "6: Authors - Outlets":
                     outlet = result['primaryEmployment']['outletName']
                     if result['country']['name'] == None:
                         country = ''
-                    elif result['country']['name'] == []:
+                    elif result['country'] == []:
                         country = ''
                     else:
                         country = result['country']['name']
