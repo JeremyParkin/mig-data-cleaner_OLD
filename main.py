@@ -846,7 +846,7 @@ elif page == "6: Authors - Outlets":
                     auth_name = result['firstName'] + " " + result['lastName']
                     job_title = result['primaryEmployment']['jobTitle']
                     outlet = result['primaryEmployment']['outletName']
-                    if result['country']['name'] == None:
+                    if result['country'] == None:
                         country = ''
                     elif result['country'] == []:
                         country = ''
