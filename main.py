@@ -836,7 +836,7 @@ elif page == "6: Authors - Outlets":
 
             if search_results['results'] == []:
                 matched_authors = []
-            elif search_results == None:
+            elif search_results['results'] == None:
                 matched_authors = []
             else:
                 response_results = search_results['results']
@@ -846,10 +846,12 @@ elif page == "6: Authors - Outlets":
                     auth_name = result['firstName'] + " " + result['lastName']
                     job_title = result['primaryEmployment']['jobTitle']
                     outlet = result['primaryEmployment']['outletName']
-                    if result['country']['name'] != None or result['country']['name'] != []:
-                        country = result['country']['name']
-                    else:
+                    if result['country']['name'] == None:
                         country = ''
+                    elif result['country']['name'] == []:
+                        country = ''
+                    else:
+                        country = result['country']['name']
                     auth_tuple = (auth_name, job_title, outlet, country)
                     outlet_results.append(auth_tuple)
 
