@@ -349,8 +349,8 @@ elif page == "2: Standard Cleaning":
                             st.write('✓ Tags Expanded')
 
                     data = data.astype(
-                        {"Type": 'category', "Author": 'category', "Sentiment": 'category', "Continent": 'category',
-                         "Country": 'category', "Prov/State": 'category', "City": 'category', "Language": 'category', })
+                        {"Type": 'category', "Sentiment": 'category', "Continent": 'category',
+                         "Country": 'category', "Prov/State": 'category', "City": 'category', "Language": 'category'})
 
                     # SOCIALS To sep df
                     soc_array = ['FACEBOOK', 'TWITTER', 'INSTAGRAM', 'REDDIT', 'YOUTUBE']
