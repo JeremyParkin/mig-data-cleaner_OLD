@@ -190,7 +190,7 @@ if page == "1: Getting Started":
         st.altair_chart(trend2, use_container_width=True)
 
         st.subheader("Raw Data")
-        st.markdown('First 50 rows')
+        st.markdown('(First 50 rows)')
         st.dataframe(data.head(50).style.format(format_dict))
         st.markdown('##')
 
@@ -460,10 +460,12 @@ elif page == "2: Standard Cleaning":
 
                     if len(traditional) > 0:
                         with st.expander("Traditional"):
-                            st.dataframe(traditional.style.format(format_dict))
+                            st.markdown('(First 50 rows)')
+                            st.dataframe(traditional.head(50).style.format(format_dict))
                     if len(social) > 0:
                         with st.expander("Social"):
-                            st.dataframe(social.style.format(format_dict))
+                            st.markdown('(First 50 rows)')
+                            st.dataframe(social.head(50).style.format(format_dict))
                     if len(dupes) > 0:
                         with st.expander("Deleted Duplicates"):
                             st.dataframe(dupes.style.format(format_dict))
