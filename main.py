@@ -4,15 +4,13 @@ import numpy as np
 import io
 # from io import BytesIO
 # import xlsxwriter
-from deep_translator import GoogleTranslator
-from titlecase import titlecase
+
+
 import warnings
 import altair as alt
-from concurrent.futures import ThreadPoolExecutor
-from threading import Thread
-from unidecode import unidecode
-import requests
-from requests.structures import CaseInsensitiveDict
+
+# from threading import Thread
+
 
 warnings.filterwarnings('ignore')
 
@@ -31,35 +29,6 @@ def top_x_by_mentions(df, column_name):
     x_table = x_table.sort_values("Mentions", ascending=False)
     x_table = x_table.rename(columns={"Mentions": "Hits"})
     return x_table.head(10)
-
-
-# def fixable_headline_stats(df, primary="Headline", secondary="Author"):
-#     """tells you how many author fields can be fixed and other stats"""
-#     total = df["Mentions"].count()
-#     headline_table = pd.pivot_table(df, index=primary, values=["Mentions", secondary], aggfunc="count")
-#     headline_table["Missing"] = headline_table["Mentions"] - headline_table[secondary]
-#     missing = headline_table.Missing.sum()
-#     headline_table = headline_table[headline_table[secondary] > 0]
-#     headline_table = headline_table[headline_table['Missing'] > 0]
-#     fixable = headline_table.Missing.sum()
-#     fixable_headline_count = headline_table.Missing.count()
-#     total_known = total - missing
-#     percent_known = "{:.0%}".format((total_known) / total)
-#     percent_knowable = "{:.0%}".format((total - (missing - fixable)) / total)
-#     stats = (
-#         f"Total rows: \t\t{total} \nTotal Known: \t\t{total_known}\nPercent Known: \t\t{percent_known} \nFixable Fields: \t{fixable}\nUnique Fixable: \t{fixable_headline_count}\nPercent knowable: \t{percent_knowable}")
-#     return stats
-
-
-# def fixable_author_headline_list():
-#     """WIP - Returns item from most fixable headline list"""
-#     headline_table = pd.pivot_table(traditional, index="Headline", values=["Mentions", "Author"], aggfunc="count")
-#     headline_table["Missing"] = headline_table["Mentions"] - headline_table["Author"]
-#     headline_table = headline_table[headline_table["Author"] > 0]
-#     headline_table = headline_table[headline_table['Missing'] > 0]
-#     headline_table = headline_table.sort_values("Missing", ascending=False)
-#     headline_table = headline_table.reset_index()
-#     return headline_table
 
 
 format_dict = {'AVE': '${0:,.0f}', 'Audience Reach': '{:,d}', 'Impressions': '{:,d}'}
@@ -234,6 +203,8 @@ if page == "1: Getting Started":
 
 elif page == "2: Standard Cleaning":
     st.title('Standard Cleaning')
+    from titlecase import titlecase
+
     if st.session_state.upload_step == False:
         st.error('Please upload a CSV before trying this step.')
     elif st.session_state.standard_step:
@@ -376,6 +347,10 @@ elif page == "2: Standard Cleaning":
                         data = data.join(data["Tags"].str.get_dummies(sep=","))
                         with col2:
                             st.write('✓ Tags Expanded')
+
+                    data = data.astype(
+                        {"Type": 'category', "Author": 'category', "Sentiment": 'category', "Continent": 'category',
+                         "Country": 'category', "Prov/State": 'category', "City": 'category', "Language": 'category', })
 
                     # SOCIALS To sep df
                     soc_array = ['FACEBOOK', 'TWITTER', 'INSTAGRAM', 'REDDIT', 'YOUTUBE']
@@ -739,6 +714,10 @@ elif page == "5: Authors - Missing":
 
 elif page == "6: Authors - Outlets":
     st.title("Author - Outlets")
+    from unidecode import unidecode
+    import requests
+    from requests.structures import CaseInsensitiveDict
+
     traditional = st.session_state.df_traditional
     auth_outlet_skipped = st.session_state.auth_outlet_skipped
     auth_outlet_table = st.session_state.auth_outlet_table
@@ -1020,6 +999,9 @@ elif page == "6: Authors - Outlets":
 
 elif page == "7: Translation":
     st.title('Translation')
+    from deep_translator import GoogleTranslator
+    from concurrent.futures import ThreadPoolExecutor
+
     traditional = st.session_state.df_traditional
     social = st.session_state.df_social
     if st.session_state.upload_step == False:
