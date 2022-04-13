@@ -848,8 +848,8 @@ elif page == "6: Authors - Outlets":
                     outlet = result['primaryEmployment']['outletName']
                     if result['country'] == None:
                         country = ''
-                    elif result['country'] == []:
-                        country = ''
+                    # elif result['country'] == []:
+                    #     country = ''
                     else:
                         country = result['country']['name']
                     auth_tuple = (auth_name, job_title, outlet, country)
@@ -915,8 +915,8 @@ elif page == "6: Authors - Outlets":
                         # country = result['country']['name']
                         if result['country'] == None:
                             country = 'None'
-                        elif result['country'] == []:
-                            country = 'Blank'
+                        # elif result['country'] == []:
+                        #     country = 'Blank'
                         else:
                             country = result['country']['name']
                         auth_tuple = (auth_name, job_title, outlet, country)
