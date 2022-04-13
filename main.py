@@ -463,6 +463,8 @@ elif page == "2: Standard Cleaning":
                             st.markdown('(First 50 rows)')
                             # st.dataframe(traditional.head(50).style.format(format_dict))
                             st.dataframe(traditional.head(50))
+                            st.markdown('(First 50 rows)')
+                            # st.dataframe(data.head(50).style.format(format_dict))
                     if len(social) > 0:
                         with st.expander("Social"):
                             st.markdown('(First 50 rows)')
@@ -1194,8 +1196,8 @@ elif page == "8: Review":
                 )
                 st.altair_chart(trend2, use_container_width=True)
 
-                st.subheader("Cleaned Data")
-                st.dataframe(traditional.style.format(format_dict))
+                # st.subheader("Cleaned Data")
+                # st.dataframe(traditional.style.format(format_dict))
                 st.markdown('##')
 
         if len(social) > 0:
@@ -1227,8 +1229,8 @@ elif page == "8: Review":
                 )
                 st.altair_chart(trend2, use_container_width=True)
 
-                st.subheader("Cleaned Data")
-                st.dataframe(social.style.format(format_dict))
+                # st.subheader("Cleaned Data")
+                # st.dataframe(social.style.format(format_dict))
                 st.markdown('##')
 
         if len(dupes) > 0:
@@ -1241,7 +1243,7 @@ elif page == "8: Review":
                 with col2:
                     st.subheader("Media Type")
                     st.write(dupes['Type'].value_counts())
-                st.dataframe(dupes.style.format(format_dict))
+                # st.dataframe(dupes.style.format(format_dict))
 
 
 elif page == "9: Download":
