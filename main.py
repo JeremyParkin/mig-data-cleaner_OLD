@@ -1125,7 +1125,7 @@ elif page == "7: Translation":
 
 elif page == "8: Review":
     st.title('Review')
-    import altair as alt
+    # import altair as alt
 
     if st.session_state.upload_step == False:
         st.error('Please upload a CSV before trying this step.')
@@ -1158,23 +1158,23 @@ elif page == "8: Review":
                     top_outlets = (top_x_by_mentions(traditional, "Outlet"))
                     st.table(top_outlets)
 
-                st.markdown('##')
-                st.subheader('Mention Trend')
-
-                trend = alt.Chart(traditional).mark_line().encode(
-                    x='Date:T',
-                    y='count(Mentions):Q'
-                )
-                st.altair_chart(trend, use_container_width=True)
-
-                st.markdown('##')
-                st.subheader('Impressions Trend')
-
-                trend2 = alt.Chart(traditional).mark_line().encode(
-                    x='Date:T',
-                    y='sum(Impressions):Q'
-                )
-                st.altair_chart(trend2, use_container_width=True)
+                # st.markdown('##')
+                # st.subheader('Mention Trend')
+                #
+                # trend = alt.Chart(traditional).mark_line().encode(
+                #     x='Date:T',
+                #     y='count(Mentions):Q'
+                # )
+                # st.altair_chart(trend, use_container_width=True)
+                #
+                # st.markdown('##')
+                # st.subheader('Impressions Trend')
+                #
+                # trend2 = alt.Chart(traditional).mark_line().encode(
+                #     x='Date:T',
+                #     y='sum(Impressions):Q'
+                # )
+                # st.altair_chart(trend2, use_container_width=True)
 
                 # st.subheader("Cleaned Data")
                 # st.dataframe(traditional.style.format(format_dict))
@@ -1191,23 +1191,23 @@ elif page == "8: Review":
                     st.subheader("Media Type")
                     st.write(social['Type'].value_counts())
 
-                st.markdown('##')
-                st.subheader('Mention Trend')
-
-                trend = alt.Chart(social).mark_line().encode(
-                    x='Date:T',
-                    y='count(Mentions):Q'
-                )
-                st.altair_chart(trend, use_container_width=True)
-
-                st.markdown('##')
-                st.subheader('Impressions Trend')
-
-                trend2 = alt.Chart(social).mark_line().encode(
-                    x='Date:T',
-                    y='sum(Impressions):Q'
-                )
-                st.altair_chart(trend2, use_container_width=True)
+                # st.markdown('##')
+                # st.subheader('Mention Trend')
+                #
+                # trend = alt.Chart(social).mark_line().encode(
+                #     x='Date:T',
+                #     y='count(Mentions):Q'
+                # )
+                # st.altair_chart(trend, use_container_width=True)
+                #
+                # st.markdown('##')
+                # st.subheader('Impressions Trend')
+                #
+                # trend2 = alt.Chart(social).mark_line().encode(
+                #     x='Date:T',
+                #     y='sum(Impressions):Q'
+                # )
+                # st.altair_chart(trend2, use_container_width=True)
 
                 # st.subheader("Cleaned Data")
                 # st.dataframe(social.style.format(format_dict))
