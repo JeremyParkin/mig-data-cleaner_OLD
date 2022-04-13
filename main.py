@@ -1,14 +1,11 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
-import io
+
 # from io import BytesIO
 # import xlsxwriter
 
-
 import warnings
-import altair as alt
-
 # from threading import Thread
 
 
@@ -111,6 +108,8 @@ st.sidebar.caption("v.1.5.2.1")
 
 if page == "1: Getting Started":
     st.title('Getting Started')
+    import altair as alt
+    import io
 
     if st.session_state.upload_step == True:
         st.success('File uploaded.')
@@ -1126,6 +1125,8 @@ elif page == "7: Translation":
 
 elif page == "8: Review":
     st.title('Review')
+    import altair as alt
+
     if st.session_state.upload_step == False:
         st.error('Please upload a CSV before trying this step.')
     elif st.session_state.standard_step == False:
@@ -1222,11 +1223,12 @@ elif page == "8: Review":
                 with col2:
                     st.subheader("Media Type")
                     st.write(dupes['Type'].value_counts())
-                # st.dataframe(dupes.style.format(format_dict))
 
 
 elif page == "9: Download":
     st.title('Download')
+    import io
+
     if st.session_state.upload_step == False:
         st.error('Please upload a CSV before trying this step.')
     elif st.session_state.standard_step == False:
