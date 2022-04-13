@@ -461,14 +461,17 @@ elif page == "2: Standard Cleaning":
                     if len(traditional) > 0:
                         with st.expander("Traditional"):
                             st.markdown('(First 50 rows)')
-                            st.dataframe(traditional.head(50).style.format(format_dict))
+                            # st.dataframe(traditional.head(50).style.format(format_dict))
+                            st.dataframe(traditional.head(50))
                     if len(social) > 0:
                         with st.expander("Social"):
                             st.markdown('(First 50 rows)')
-                            st.dataframe(social.head(50).style.format(format_dict))
+                            # st.dataframe(social.head(50).style.format(format_dict))
+                            st.dataframe(social.head(50))
                     if len(dupes) > 0:
                         with st.expander("Deleted Duplicates"):
-                            st.dataframe(dupes.style.format(format_dict))
+                            # st.dataframe(dupes.style.format(format_dict))
+                            st.dataframe(dupes)
 
                     original_trad_auths = top_x_by_mentions(traditional, "Author")
                     st.session_state.original_trad_auths = original_trad_auths
