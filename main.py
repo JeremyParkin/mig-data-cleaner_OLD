@@ -316,7 +316,6 @@ elif page == "2: Standard Cleaning":
                     # Move columns
                     temp = data.pop('Impressions')
                     data.insert(5, 'Impressions', temp)
-                    # data.Impressions = data.Impressions.astype('Int64')
                     temp = data.pop('Mentions')
                     data.insert(5, 'Mentions', temp)
                     with col2:
@@ -1101,12 +1100,7 @@ elif page == "7: Translation":
                     # AP Cap
                     broadcast_array = ['RADIO', 'TV']
                     broadcast = traditional.loc[traditional['Type'].isin(broadcast_array)]
-                    # TODO: swap this for the 1 line version
-                    index_names = traditional[(traditional['Type'] == 'RADIO')].index
-                    traditional.drop(index_names, inplace=True)
-                    index_names = traditional[(traditional['Type'] == 'TV')].index
-                    traditional.drop(index_names, inplace=True)
-
+                    traditional = traditional[~traditional['Type'].isin(broadcast_array)]
                     traditional[['Headline']] = traditional[['Headline']].fillna('')
                     traditional['Headline'] = traditional['Headline'].map(lambda Headline: titlecase(Headline))
                     frames = [traditional, broadcast]
