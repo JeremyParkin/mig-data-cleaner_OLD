@@ -846,7 +846,10 @@ elif page == "6: Authors - Outlets":
                     auth_name = result['firstName'] + " " + result['lastName']
                     job_title = result['primaryEmployment']['jobTitle']
                     outlet = result['primaryEmployment']['outletName']
-                    country = result['country']['name']
+                    if result['country']['name'] != None or result['country']['name'] != []:
+                        country = result['country']['name']
+                    else:
+                        country = ''
                     auth_tuple = (auth_name, job_title, outlet, country)
                     outlet_results.append(auth_tuple)
 
