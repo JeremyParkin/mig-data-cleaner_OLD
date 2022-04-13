@@ -1001,6 +1001,7 @@ elif page == "7: Translation":
     st.title('Translation')
     from deep_translator import GoogleTranslator
     from concurrent.futures import ThreadPoolExecutor
+    from titlecase import titlecase
 
     traditional = st.session_state.df_traditional
     social = st.session_state.df_social
