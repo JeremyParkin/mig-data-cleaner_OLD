@@ -62,7 +62,7 @@ def top_x_by_mentions(df, column_name):
 #     return headline_table
 
 
-format_dict = {'AVE': '${0:,.0f}', 'Audience Reach': '{:,d}', 'Impressions': '{:,d}'}
+format_dict = {}#{'AVE': '${0:,.0f}', 'Audience Reach': '{:,d}', 'Impressions': '{:,d}'}
 
 if 'page' not in st.session_state:
     st.session_state['page'] = '1: Upload your CSV'
