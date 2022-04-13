@@ -14,7 +14,6 @@ from unidecode import unidecode
 import requests
 from requests.structures import CaseInsensitiveDict
 
-
 warnings.filterwarnings('ignore')
 
 st.set_page_config(layout="wide", page_title="MIG Data Cleaning App",
@@ -26,19 +25,6 @@ hide_menu_style = """
         """
 st.markdown(hide_menu_style, unsafe_allow_html=True)
 
-
-def yahoo_cleanup(url_string):
-    data.loc[data['URL'].str.contains(url_string, na=False), "Outlet"] = "Yahoo! News"
-    data.loc[data['URL'].str.contains(url_string, na=False), "Impressions"] = 80828000
-    data.loc[data['URL'].str.contains(url_string, na=False), "Country"] = (np.nan)
-    data.loc[data['URL'].str.contains(url_string, na=False), "Continent"] = (np.nan)
-    data.loc[data['URL'].str.contains(url_string, na=False), "City"] = (np.nan)
-    data.loc[data['URL'].str.contains(url_string, na=False), "Prov/State"] = (np.nan)
-    data.loc[data['URL'].str.contains(url_string, na=False), "sub"] = data['URL'].str.rsplit('/', 1).str[-1]
-    data.loc[data['URL'].str.contains(url_string, na=False), "URL"] = 'https://news.yahoo.com/' + data["sub"]
-    data.drop(["sub"], axis=1, inplace=True, errors='ignore')
-
-
 def top_x_by_mentions(df, column_name):
     """Returns top N items by mention count"""
     x_table = pd.pivot_table(df, index=column_name, values=["Mentions"], aggfunc="count")
@@ -47,128 +33,33 @@ def top_x_by_mentions(df, column_name):
     return x_table.head(10)
 
 
-def fixable_impressions_list(df):
-    """WIP - Returns item from most fixable imp list"""
-    imp_table = pd.pivot_table(df, index="Outlet", values=["Mentions", "Impressions"], aggfunc="count")
-    imp_table["Missing"] = imp_table["Mentions"] - imp_table["Impressions"]
-    imp_table = imp_table[imp_table["Impressions"] > 0]
-    imp_table = imp_table[imp_table['Missing'] > 0]
-    imp_table = imp_table.sort_values("Missing", ascending=False)
-    imp_table = imp_table.reset_index()
-    return imp_table
+# def fixable_headline_stats(df, primary="Headline", secondary="Author"):
+#     """tells you how many author fields can be fixed and other stats"""
+#     total = df["Mentions"].count()
+#     headline_table = pd.pivot_table(df, index=primary, values=["Mentions", secondary], aggfunc="count")
+#     headline_table["Missing"] = headline_table["Mentions"] - headline_table[secondary]
+#     missing = headline_table.Missing.sum()
+#     headline_table = headline_table[headline_table[secondary] > 0]
+#     headline_table = headline_table[headline_table['Missing'] > 0]
+#     fixable = headline_table.Missing.sum()
+#     fixable_headline_count = headline_table.Missing.count()
+#     total_known = total - missing
+#     percent_known = "{:.0%}".format((total_known) / total)
+#     percent_knowable = "{:.0%}".format((total - (missing - fixable)) / total)
+#     stats = (
+#         f"Total rows: \t\t{total} \nTotal Known: \t\t{total_known}\nPercent Known: \t\t{percent_known} \nFixable Fields: \t{fixable}\nUnique Fixable: \t{fixable_headline_count}\nPercent knowable: \t{percent_knowable}")
+#     return stats
 
 
-def fix_imp(df, outlet, new_impressions_value):
-    """Updates all impressions for a given outlet"""
-    df.loc[df["Outlet"] == outlet, "Impressions"] = new_impressions_value
-
-
-def outlet_imp(df, outlet):
-    """Returns the various authors for a given headline"""
-    outlet_imps = (df[df.Outlet == outlet].Impressions.value_counts().reset_index())
-    return outlet_imps
-
-
-def fix_author(df, headline_text, new_author):
-    """Updates all authors for a given headline"""
-    df.loc[df["Headline"] == headline_text, "Author"] = new_author
-
-
-def fixable_headline_stats(df, primary="Headline", secondary="Author"):
-    """tells you how many author fields can be fixed and other stats"""
-    total = df["Mentions"].count()
-    headline_table = pd.pivot_table(df, index=primary, values=["Mentions", secondary], aggfunc="count")
-    headline_table["Missing"] = headline_table["Mentions"] - headline_table[secondary]
-    missing = headline_table.Missing.sum()
-    headline_table = headline_table[headline_table[secondary] > 0]
-    headline_table = headline_table[headline_table['Missing'] > 0]
-    fixable = headline_table.Missing.sum()
-    fixable_headline_count = headline_table.Missing.count()
-    total_known = total - missing
-    percent_known = "{:.0%}".format((total_known) / total)
-    percent_knowable = "{:.0%}".format((total - (missing - fixable)) / total)
-    stats = (
-        f"Total rows: \t\t{total} \nTotal Known: \t\t{total_known}\nPercent Known: \t\t{percent_known} \nFixable Fields: \t{fixable}\nUnique Fixable: \t{fixable_headline_count}\nPercent knowable: \t{percent_knowable}")
-    return stats
-
-
-def fixable_author_headline_list():
-    """WIP - Returns item from most fixable headline list"""
-    headline_table = pd.pivot_table(traditional, index="Headline", values=["Mentions", "Author"], aggfunc="count")
-    headline_table["Missing"] = headline_table["Mentions"] - headline_table["Author"]
-    headline_table = headline_table[headline_table["Author"] > 0]
-    headline_table = headline_table[headline_table['Missing'] > 0]
-    headline_table = headline_table.sort_values("Missing", ascending=False)
-    headline_table = headline_table.reset_index()
-    return headline_table
-
-
-def headline_authors(df, headline_text):
-    """Returns the various authors for a given headline"""
-    headline_authors = (df[df.Headline == headline_text].Author.value_counts().reset_index())
-    return headline_authors
-
-
-def translate_col(df, name_of_column):
-    """Replaces non-English string in column with English"""
-    global dictionary
-    dictionary = {}
-    unique_non_eng = list(set(df[name_of_column][df['Language'] != 'English'].dropna()))
-    if '' in unique_non_eng:
-        unique_non_eng.remove('')
-    with st.spinner('Running translation now...'):
-        with ThreadPoolExecutor(max_workers=30) as ex:
-            results = ex.map(translate, [text for text in unique_non_eng])
-    df[name_of_column].replace(dictionary, inplace=True)
-
-
-def translate(text):
-    dictionary[text] = (GoogleTranslator(source='auto', target='en').translate(text[:1500]))
-
-
-def translation_stats_combo():
-    non_english_records = len(traditional[traditional['Language'] != 'English']) + len(
-        social[social['Language'] != 'English'])
-    minutes = non_english_records // 100
-    if minutes == 0:
-        min_word = 'minute'
-    else:
-        min_word = 'minutes'
-    st.write(f"There are {non_english_records} non-English records in your data.")
-
-
-def fetch_outlet(author_name):
-    contact_url = "https://mediadatabase.agilitypr.com/api/v4/contacts/search"
-    headers = CaseInsensitiveDict()
-    headers["Content-Type"] = "text/json"
-    headers["Accept"] = "text/json"
-    headers["Authorization"] = st.secrets["authorization"]
-    headers["client_id"] = st.secrets["client_id"]
-    headers["userclient_id"] = st.secrets["userclient_id"]
-
-    data_a = '''
-  {  
-    "aliases": [  
-      "'''
-
-    data_b = '''"  
-    ]   
-  }
-  '''
-
-    data = data_a + author_name + data_b
-    contact_resp = requests.post(contact_url, headers=headers, data=data)
-
-    return contact_resp.json()
-
-def reset_skips():
-    st.session_state.auth_outlet_skipped = 0
-
-
-def name_match(series):
-    non_match = 'color: #985331;'
-    match = 'color: goldenrod'
-    return [non_match if cell_value != author_name else match for cell_value in series]
+# def fixable_author_headline_list():
+#     """WIP - Returns item from most fixable headline list"""
+#     headline_table = pd.pivot_table(traditional, index="Headline", values=["Mentions", "Author"], aggfunc="count")
+#     headline_table["Missing"] = headline_table["Mentions"] - headline_table["Author"]
+#     headline_table = headline_table[headline_table["Author"] > 0]
+#     headline_table = headline_table[headline_table['Missing'] > 0]
+#     headline_table = headline_table.sort_values("Missing", ascending=False)
+#     headline_table = headline_table.reset_index()
+#     return headline_table
 
 
 format_dict = {'AVE': '${0:,.0f}', 'Audience Reach': '{:,d}', 'Impressions': '{:,d}'}
@@ -359,6 +250,40 @@ elif page == "2: Standard Cleaning":
             with st.expander("Deleted Duplicates"):
                 st.dataframe(dupes.style.format(format_dict))
     else:
+        def yahoo_cleanup(url_string):
+            data.loc[data['URL'].str.contains(url_string, na=False), "Outlet"] = "Yahoo! News"
+            data.loc[data['URL'].str.contains(url_string, na=False), "Impressions"] = 80828000
+            data.loc[data['URL'].str.contains(url_string, na=False), "Country"] = (np.nan)
+            data.loc[data['URL'].str.contains(url_string, na=False), "Continent"] = (np.nan)
+            data.loc[data['URL'].str.contains(url_string, na=False), "City"] = (np.nan)
+            data.loc[data['URL'].str.contains(url_string, na=False), "Prov/State"] = (np.nan)
+            data.loc[data['URL'].str.contains(url_string, na=False), "sub"] = data['URL'].str.rsplit('/', 1).str[-1]
+            data.loc[data['URL'].str.contains(url_string, na=False), "URL"] = 'https://news.yahoo.com/' + data["sub"]
+            data.drop(["sub"], axis=1, inplace=True, errors='ignore')
+
+
+        def fixable_impressions_list(df):
+            """WIP - Returns item from most fixable imp list"""
+            imp_table = pd.pivot_table(df, index="Outlet", values=["Mentions", "Impressions"], aggfunc="count")
+            imp_table["Missing"] = imp_table["Mentions"] - imp_table["Impressions"]
+            imp_table = imp_table[imp_table["Impressions"] > 0]
+            imp_table = imp_table[imp_table['Missing'] > 0]
+            imp_table = imp_table.sort_values("Missing", ascending=False)
+            imp_table = imp_table.reset_index()
+            return imp_table
+
+
+        def fix_imp(df, outlet, new_impressions_value):
+            """Updates all impressions for a given outlet"""
+            df.loc[df["Outlet"] == outlet, "Impressions"] = new_impressions_value
+
+
+        def outlet_imp(df, outlet):
+            """Returns the various authors for a given headline"""
+            outlet_imps = (df[df.Outlet == outlet].Impressions.value_counts().reset_index())
+            return outlet_imps
+
+
         data = st.session_state.df_raw
 
         with st.form("my_form_basic_cleaning"):
@@ -684,6 +609,18 @@ elif page == "5: Authors - Missing":
         counter = st.session_state.counter
         original_top_authors = st.session_state.original_auths
 
+
+        def fix_author(df, headline_text, new_author):
+            """Updates all authors for a given headline"""
+            df.loc[df["Headline"] == headline_text, "Author"] = new_author
+
+
+        def headline_authors(df, headline_text):
+            """Returns the various authors for a given headline"""
+            headline_authors = (df[df.Headline == headline_text].Author.value_counts().reset_index())
+            return headline_authors
+
+
         headline_table = pd.pivot_table(traditional, index="Headline", values=["Mentions", "Author"], aggfunc="count")
         headline_table["Missing"] = headline_table["Mentions"] - headline_table["Author"]
         headline_table = headline_table[headline_table["Author"] > 0]
@@ -785,9 +722,9 @@ elif page == "5: Authors - Missing":
             st.subheader("New Top Authors")
             st.dataframe(top_x_by_mentions(traditional, "Author"))
 
-        st.subheader("Fixable Author Stats")
-        stats = (fixable_headline_stats(traditional, primary="Headline", secondary="Author"))
-        st.text(stats)
+        # st.subheader("Fixable Author Stats")
+        # stats = (fixable_headline_stats(traditional, primary="Headline", secondary="Author"))
+        # st.text(stats)
 
 
 elif page == "6: Authors - Outlets":
@@ -802,6 +739,42 @@ elif page == "6: Authors - Outlets":
     elif st.session_state.standard_step == False:
         st.error('Please run the Standard Cleaning before trying this step.')
     else:
+        def fetch_outlet(author_name):
+            contact_url = "https://mediadatabase.agilitypr.com/api/v4/contacts/search"
+            headers = CaseInsensitiveDict()
+            headers["Content-Type"] = "text/json"
+            headers["Accept"] = "text/json"
+            headers["Authorization"] = st.secrets["authorization"]
+            headers["client_id"] = st.secrets["client_id"]
+            headers["userclient_id"] = st.secrets["userclient_id"]
+
+            data_a = '''
+          {  
+            "aliases": [  
+              "'''
+
+            data_b = '''"  
+            ]   
+          }
+          '''
+
+            data = data_a + author_name + data_b
+            contact_resp = requests.post(contact_url, headers=headers, data=data)
+
+            return contact_resp.json()
+
+
+        def reset_skips():
+            st.session_state.auth_outlet_skipped = 0
+
+
+        def name_match(series):
+            non_match = 'color: #985331;'
+            match = 'color: goldenrod'
+            return [non_match if cell_value != author_name else match for cell_value in series]
+
+
+
         top_auths_by = st.selectbox('Top Authors by: ', ['Mentions', 'Impressions'], on_change=reset_skips)
         st.session_state.top_auths_by = top_auths_by
         if len(auth_outlet_table) == 0:
@@ -1050,6 +1023,34 @@ elif page == "7: Translation":
             social[social['Language'] != 'English']) == 0:
         st.subheader("No translation required")
     else:
+        def translate_col(df, name_of_column):
+            """Replaces non-English string in column with English"""
+            global dictionary
+            dictionary = {}
+            unique_non_eng = list(set(df[name_of_column][df['Language'] != 'English'].dropna()))
+            if '' in unique_non_eng:
+                unique_non_eng.remove('')
+            with st.spinner('Running translation now...'):
+                with ThreadPoolExecutor(max_workers=30) as ex:
+                    results = ex.map(translate, [text for text in unique_non_eng])
+            df[name_of_column].replace(dictionary, inplace=True)
+
+
+        def translate(text):
+            dictionary[text] = (GoogleTranslator(source='auto', target='en').translate(text[:1500]))
+
+
+        def translation_stats_combo():
+            non_english_records = len(traditional[traditional['Language'] != 'English']) + len(
+                social[social['Language'] != 'English'])
+            minutes = non_english_records // 100
+            if minutes == 0:
+                min_word = 'minute'
+            else:
+                min_word = 'minutes'
+            st.write(f"There are {non_english_records} non-English records in your data.")
+
+
         translation_stats_combo()
         if len(traditional) > 0:
             with st.expander("Traditional - Non-English"):

@@ -1,0 +1,7 @@
+#!/Users/jeremyparkin/PycharmProjects/S&P500-streamlit/venv/bin/python
+
+import sys
+import psrecord
+
+if __name__ == '__main__':
+    sys.exit(psrecord.main())
