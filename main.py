@@ -190,6 +190,7 @@ if page == "1: Getting Started":
         st.altair_chart(trend2, use_container_width=True)
 
         st.subheader("Raw Data")
+        st.markdown('First 50 rows')
         st.dataframe(data.head(50).style.format(format_dict))
         st.markdown('##')
 
