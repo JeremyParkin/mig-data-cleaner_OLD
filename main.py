@@ -419,7 +419,7 @@ elif page == "2: Standard Cleaning":
                     data = data[~data.Headline.isna() | data.Outlet.isna() | data.Type.isna()]
 
                     # Add helper column
-                    data["dupe_helper"] = data[string('Type')] + data[string('Outlet')] + data['Headline']
+                    data["dupe_helper"] = data[str('Type')] + data[str('Outlet')] + data['Headline']
                     data = data.sort_values(["dupe_helper", "Author", "Impressions", "AVE"], axis=0,
                                             ascending=[True, True, False, False])
                     dupe_cols = data[data['dupe_helper'].duplicated(keep='first') == True]
