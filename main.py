@@ -141,6 +141,15 @@ if page == "1: Getting Started":
 
 
         st.markdown('##')
+
+
+        st.subheader('Mention Trend')
+
+        trend = data.groupby('Published Date')[['Mentions']].sum()
+        trend.plot()
+
+        st.markdown('##')
+
         st.subheader('Mention Trend')
 
         trend = alt.Chart(data).mark_line().encode(
@@ -1158,9 +1167,12 @@ elif page == "8: Review":
                     top_outlets = (top_x_by_mentions(traditional, "Outlet"))
                     st.table(top_outlets)
 
-                # st.markdown('##')
-                # st.subheader('Mention Trend')
-                #
+                st.markdown('##')
+                st.subheader('Mention Trend')
+
+                trend = traditional.groupby('Date')[['Mentions']].sum()
+                trend.plot()
+
                 # trend = alt.Chart(traditional).mark_line().encode(
                 #     x='Date:T',
                 #     y='count(Mentions):Q'
