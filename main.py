@@ -147,7 +147,7 @@ if page == "1: Getting Started":
 
         trend = data.groupby('Published Date')[['Mentions']].sum()
         # trend.plot()
-        st.line_chart(trend)
+        st.line_chart(trend, use_container_width=True)
 
         st.markdown('##')
 
