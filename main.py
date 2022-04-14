@@ -146,7 +146,8 @@ if page == "1: Getting Started":
         st.subheader('Mention Trend')
 
         trend = data.groupby('Published Date')[['Mentions']].sum()
-        trend.plot()
+        # trend.plot()
+        st.line_chart(trend)
 
         st.markdown('##')
 
