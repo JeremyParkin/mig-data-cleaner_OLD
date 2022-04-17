@@ -614,19 +614,28 @@ elif page == "5: Authors - Missing":
             return headline_authors
 
 
-        headline_table = pd.pivot_table(traditional, index="Headline", values=["Mentions", "Author"], aggfunc="count")
+        # headline_table = pd.pivot_table(traditional, index="Headline", values=["Mentions", "Author"], aggfunc="count")
+        # headline_table["Missing"] = headline_table["Mentions"] - headline_table["Author"]
+        # headline_table = headline_table[headline_table["Author"] > 0]
+        # headline_table = headline_table[headline_table['Missing'] > 0]
+        # headline_table = headline_table.sort_values("Missing", ascending=False)
+        # headline_table = headline_table.reset_index()
+        # headline_table.rename(columns={'Author': 'Known',
+        #                                'Mentions': 'Total'},
+        #                       inplace=True, errors='raise')
+
+        headline_table = data[['Headline', 'Mentions', 'Author']]
+        headline_table = headline_table.groupby("Headline").count()
         headline_table["Missing"] = headline_table["Mentions"] - headline_table["Author"]
-        headline_table = headline_table[headline_table["Author"] > 0]
-        headline_table = headline_table[headline_table['Missing'] > 0]
-        headline_table = headline_table.sort_values("Missing", ascending=False)
-        headline_table = headline_table.reset_index()
-        headline_table.rename(columns={'Author': 'Known',
-                                       'Mentions': 'Total'},
+        headline_table = headline_table[(headline_table["Author"] > 0) & (headline_table['Missing'] > 0)].sort_values(
+            "Missing", ascending=False)
+        headline_table.rename(columns={'Author': 'Known', 'Mentions': 'Total'},
                               inplace=True, errors='raise')
 
         temp_headline_list = headline_table
         if counter < len(temp_headline_list):
-            headline_text = temp_headline_list.iloc[counter]['Headline']
+            # headline_text = temp_headline_list.iloc[counter]['Headline']
+            headline_text = temp_headline_list.index[counter]
 
             but1, col3, but2 = st.columns(3)
             with but1:
