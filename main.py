@@ -628,7 +628,7 @@ elif page == "5: Authors - Missing":
         headline_table = headline_table.groupby("Headline").count()
         headline_table["Missing"] = headline_table["Mentions"] - headline_table["Author"]
         headline_table = headline_table[(headline_table["Author"] > 0) & (headline_table['Missing'] > 0)].sort_values(
-            "Missing", ascending=False)
+            "Missing", ascending=False).reset_index()
         headline_table.rename(columns={'Author': 'Known', 'Mentions': 'Total'},
                               inplace=True, errors='raise')
 
