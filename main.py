@@ -143,13 +143,13 @@ if page == "1: Getting Started":
         st.markdown('##')
 
 
-        st.subheader('Mention Trend')
-
-        trend = data.groupby('Published Date')[['Mentions']].sum()
-        # trend.plot()
-        st.line_chart(trend, use_container_width=True)
-
-        st.markdown('##')
+        # st.subheader('Mention Trend')
+        #
+        # trend = data.groupby('Published Date')[['Mentions']].sum()
+        # # trend.plot()
+        # st.line_chart(trend, use_container_width=True)
+        #
+        # st.markdown('##')
 
         st.subheader('Mention Trend')
 
@@ -1183,8 +1183,8 @@ elif page == "8: Review":
                 st.markdown('##')
                 st.subheader('Mention Trend')
 
-                trend = traditional.groupby('Date')[['Mentions']].sum()
-                trend.plot()
+                # trend = traditional.groupby('Date')[['Mentions']].sum()
+                # trend.plot()
 
                 # trend = alt.Chart(traditional).mark_line().encode(
                 #     x='Date:T',
