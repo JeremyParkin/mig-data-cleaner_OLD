@@ -633,7 +633,7 @@ elif page == "5: Authors - Missing":
                               inplace=True, errors='raise')
 
         temp_headline_list = headline_table
-        st.write(temp_headline_list)
+        # st.write(temp_headline_list)
         if counter < len(temp_headline_list):
             headline_text = temp_headline_list.iloc[counter]['Headline']
             # headline_text = temp_headline_list.index[counter]
@@ -656,7 +656,7 @@ elif page == "5: Authors - Missing":
                         st.session_state.counter = counter
                         st.experimental_rerun()
 
-            st.write(headline_text)
+            # st.write(headline_text)
             possibles = headline_authors(traditional, headline_text)['index'].tolist()
             # possibles = headline_authors(traditional, headline_text).tolist()
 
