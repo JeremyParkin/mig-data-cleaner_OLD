@@ -635,8 +635,8 @@ elif page == "5: Authors - Missing":
         temp_headline_list = headline_table
         st.write(temp_headline_list)
         if counter < len(temp_headline_list):
-            # headline_text = temp_headline_list.iloc[counter]['Headline']
-            headline_text = temp_headline_list.index[counter]
+            headline_text = temp_headline_list.iloc[counter]['Headline']
+            # headline_text = temp_headline_list.index[counter]
 
             but1, col3, but2 = st.columns(3)
             with but1:
