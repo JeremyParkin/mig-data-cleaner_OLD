@@ -655,7 +655,8 @@ elif page == "5: Authors - Missing":
                         st.session_state.counter = counter
                         st.experimental_rerun()
 
-            possibles = headline_authors(traditional, headline_text)['index'].tolist()
+            # possibles = headline_authors(traditional, headline_text)['index'].tolist()
+            possibles = headline_authors(traditional, headline_text).tolist()
 
             # CSS to inject contained in a string
             hide_table_row_index = """
