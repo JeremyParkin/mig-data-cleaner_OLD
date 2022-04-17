@@ -624,7 +624,7 @@ elif page == "5: Authors - Missing":
         #                                'Mentions': 'Total'},
         #                       inplace=True, errors='raise')
 
-        headline_table = data[['Headline', 'Mentions', 'Author']]
+        headline_table = traditional[['Headline', 'Mentions', 'Author']]
         headline_table = headline_table.groupby("Headline").count()
         headline_table["Missing"] = headline_table["Mentions"] - headline_table["Author"]
         headline_table = headline_table[(headline_table["Author"] > 0) & (headline_table['Missing'] > 0)].sort_values(
