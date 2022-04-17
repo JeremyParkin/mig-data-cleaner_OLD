@@ -1180,8 +1180,8 @@ elif page == "8: Review":
                     top_outlets = (top_x_by_mentions(traditional, "Outlet"))
                     st.table(top_outlets)
 
-                st.markdown('##')
-                st.subheader('Mention Trend')
+                # st.markdown('##')
+                # st.subheader('Mention Trend')
 
                 # trend = traditional.groupby('Date')[['Mentions']].sum()
                 # trend.plot()
