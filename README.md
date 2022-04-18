@@ -19,7 +19,6 @@
   - AP Style Capitalization of Headlines
   - Media Types Cleaned
   - Columns Sorted
-  - Tags Expanded
   - Yahoo Standardization
   - Original URLs Merged
   - Extra Spaces Removed
