@@ -1,7 +1,7 @@
 # mig-data-cleaner
 
 ############
-QUICK START
+**QUICK START**
 ############
 
 1. Only works with CSV files exported from Agility Saved Coverage Folders
@@ -9,7 +9,7 @@ QUICK START
 
 
 ############
-STEP DETAILS
+**STEP DETAILS**
 ############
 
 1: Getting Started
