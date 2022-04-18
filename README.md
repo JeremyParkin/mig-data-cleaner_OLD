@@ -1,16 +1,13 @@
 # mig-data-cleaner
 
-############
 **QUICK START**
-############
 
 1. Only works with CSV files exported from Agility Saved Coverage Folders
 2. After uploading, the next step, "Standard Cleaning" is the only required step - all the rest are optional, but very useful
 
 
-############
+
 **STEP DETAILS**
-############
 
 1: Getting Started
   - upload your file and see basic stats on the uncleaned data
